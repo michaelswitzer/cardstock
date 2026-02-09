@@ -3,7 +3,9 @@
     "allow": [
       "WebSearch",
       "WebFetch(domain:kb.tabletopsimulator.com)",
-      "WebFetch(domain:help.drivethrupartners.com)"
+      "WebFetch(domain:help.drivethrupartners.com)",
+      "Bash(curl:*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

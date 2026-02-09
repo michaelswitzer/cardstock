@@ -44,6 +44,19 @@ export async function renderPreview(
   return data.dataUrl;
 }
 
+export async function renderPreviewBatch(
+  templateId: string,
+  cards: CardData[],
+  mapping: FieldMapping
+): Promise<string[]> {
+  const { data } = await api.post('/cards/preview-batch', {
+    templateId,
+    cards,
+    mapping,
+  });
+  return data.dataUrls;
+}
+
 export async function startExport(
   templateId: string,
   cards: CardData[],

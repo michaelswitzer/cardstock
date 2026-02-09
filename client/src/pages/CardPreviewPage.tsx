@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/appStore';
-import { renderPreview } from '../api/client';
+import { renderPreviewBatch } from '../api/client';
 import CardGrid from '../components/CardGrid';
 
 export default function CardPreviewPage() {
@@ -18,34 +18,25 @@ export default function CardPreviewPage() {
 
   const [cardImages, setCardImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (!selectedTemplate || rows.length === 0 || Object.keys(mapping).length === 0) return;
 
     let cancelled = false;
     setLoading(true);
-    setProgress(0);
 
-    async function renderAll() {
-      const images: string[] = [];
-      for (let i = 0; i < rows.length; i++) {
-        if (cancelled) return;
-        try {
-          const url = await renderPreview(selectedTemplate!.id, rows[i], mapping);
-          images.push(url);
-        } catch {
-          images.push('');
+    renderPreviewBatch(selectedTemplate.id, rows, mapping)
+      .then((dataUrls) => {
+        if (!cancelled) {
+          setCardImages(dataUrls);
+          setLoading(false);
         }
-        setProgress(Math.round(((i + 1) / rows.length) * 100));
-      }
-      if (!cancelled) {
-        setCardImages(images);
-        setLoading(false);
-      }
-    }
+      })
+      .catch((err) => {
+        console.error('Batch preview failed:', err);
+        if (!cancelled) setLoading(false);
+      });
 
-    renderAll();
     return () => { cancelled = true; };
   }, [selectedTemplate, mapping, rows]);
 
@@ -65,12 +56,9 @@ export default function CardPreviewPage() {
       <h2>Card Preview</h2>
 
       {loading && (
-        <div>
-          <p style={{ fontSize: 14 }}>Rendering cards... {progress}%</p>
-          <div style={{ height: 6, background: 'var(--surface-light)', borderRadius: 3, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: 'var(--success)', transition: 'width 0.3s' }} />
-          </div>
-        </div>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+          Rendering {rows.length} cards...
+        </p>
       )}
 
       {!loading && cardImages.length > 0 && (

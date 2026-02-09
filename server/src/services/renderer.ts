@@ -4,18 +4,15 @@ import {
   RENDER_SCALE,
   CARD_WIDTH_CSS,
   CARD_HEIGHT_CSS,
-  CARD_WIDTH_PX,
-  CARD_HEIGHT_PX,
   TARGET_DPI,
-  PAGE_POOL_SIZE,
 } from '@cardmaker/shared';
 
 let browser: Browser | null = null;
-const pagePool: Page[] = [];
-const pageAvailable: (() => void)[] = [];
+let renderPage: Page | null = null;
 
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.connected) {
+    renderPage = null;
     browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -24,74 +21,62 @@ async function getBrowser(): Promise<Browser> {
   return browser;
 }
 
-async function acquirePage(): Promise<Page> {
-  if (pagePool.length > 0) {
-    return pagePool.pop()!;
+async function getPage(): Promise<Page> {
+  if (renderPage && !renderPage.isClosed()) {
+    return renderPage;
   }
-
   const b = await getBrowser();
-  const allPages = await b.pages();
-  if (allPages.length < PAGE_POOL_SIZE) {
-    return b.newPage();
-  }
-
-  // Wait for a page to become available
-  return new Promise<Page>((resolve) => {
-    pageAvailable.push(() => resolve(pagePool.pop()!));
+  renderPage = await b.newPage();
+  await renderPage.setViewport({
+    width: CARD_WIDTH_CSS,
+    height: CARD_HEIGHT_CSS,
+    deviceScaleFactor: RENDER_SCALE,
   });
-}
-
-function releasePage(page: Page) {
-  pagePool.push(page);
-  const waiter = pageAvailable.shift();
-  if (waiter) waiter();
+  return renderPage;
 }
 
 /**
- * Renders an HTML string to a PNG buffer at 300 DPI.
+ * Pre-warm the browser and page so the first render isn't slow.
+ */
+export async function warmUp(): Promise<void> {
+  await getPage();
+  console.log('Puppeteer warm: browser and page ready');
+}
+
+/**
+ * Core screenshot function shared by preview and export paths.
+ */
+async function screenshotCard(html: string): Promise<Buffer> {
+  const page = await getPage();
+  await page.setContent(html, { waitUntil: 'domcontentloaded' });
+
+  const screenshot = await page.screenshot({
+    type: 'png',
+    clip: { x: 0, y: 0, width: CARD_WIDTH_CSS, height: CARD_HEIGHT_CSS },
+  });
+
+  return Buffer.from(screenshot);
+}
+
+/**
+ * Renders an HTML string to a PNG buffer at 300 DPI (for export).
+ * Only embeds DPI metadata — Puppeteer already outputs at the correct pixel size.
  */
 export async function renderCardToPng(html: string): Promise<Buffer> {
-  const page = await acquirePage();
-
-  try {
-    await page.setViewport({
-      width: CARD_WIDTH_CSS,
-      height: CARD_HEIGHT_CSS,
-      deviceScaleFactor: RENDER_SCALE,
-    });
-
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-
-    const screenshot = await page.screenshot({
-      type: 'png',
-      clip: {
-        x: 0,
-        y: 0,
-        width: CARD_WIDTH_CSS,
-        height: CARD_HEIGHT_CSS,
-      },
-    });
-
-    // Embed DPI metadata using sharp
-    const buffer = Buffer.from(screenshot);
-    const withDpi = await sharp(buffer)
-      .png({ quality: 100 })
-      .withMetadata({ density: TARGET_DPI })
-      .resize(CARD_WIDTH_PX, CARD_HEIGHT_PX, { fit: 'fill' })
-      .toBuffer();
-
-    return withDpi;
-  } finally {
-    releasePage(page);
-  }
+  const buffer = await screenshotCard(html);
+  return sharp(buffer)
+    .withMetadata({ density: TARGET_DPI })
+    .png()
+    .toBuffer();
 }
 
 /**
- * Renders card HTML and returns a base64 data URL for previews.
+ * Lightweight preview render — returns a base64 data URL.
+ * Skips sharp entirely since previews don't need DPI metadata.
  */
 export async function renderCardToDataUrl(html: string): Promise<string> {
-  const png = await renderCardToPng(html);
-  return `data:image/png;base64,${png.toString('base64')}`;
+  const buffer = await screenshotCard(html);
+  return `data:image/png;base64,${buffer.toString('base64')}`;
 }
 
 /**
@@ -101,7 +86,7 @@ export async function closeBrowser(): Promise<void> {
   if (browser) {
     await browser.close();
     browser = null;
-    pagePool.length = 0;
+    renderPage = null;
   }
 }
 

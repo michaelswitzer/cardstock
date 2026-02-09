@@ -12,10 +12,6 @@ client/dist/
 
 # Export outputs
 output/
-*.png
-*.pdf
-!artwork/**/*.png
-!server/templates/**/*.png
 
 # IDE
 .vscode/
