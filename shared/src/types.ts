@@ -64,6 +64,14 @@ export interface ExportJob {
   error?: string;
 }
 
+/** Saved local defaults for the wizard */
+export interface LocalDefaults {
+  version: number;
+  sheetUrl?: string;
+  defaultTemplateId?: string;
+  mappings?: Record<string, FieldMapping>;
+}
+
 /** API response for sheet data */
 export interface SheetResponse {
   headers: string[];

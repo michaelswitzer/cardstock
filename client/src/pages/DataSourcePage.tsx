@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useAppStore } from '../stores/appStore';
 import { fetchSheetData } from '../api/client';
+import { useDefaults } from '../hooks/useDefaults';
 import DataTable from '../components/DataTable';
 
 export default function DataSourcePage() {
   const navigate = useNavigate();
   const { sheetUrl, setSheetUrl, setSheetData, headers, rows } = useAppStore();
   const [inputUrl, setInputUrl] = useState(sheetUrl);
+  const { data: defaults } = useDefaults();
+
+  // Auto-populate URL from saved defaults
+  useEffect(() => {
+    if (defaults?.sheetUrl && !inputUrl) {
+      setInputUrl(defaults.sheetUrl);
+    }
+  }, [defaults]);
 
   const fetchMutation = useMutation({
     mutationFn: fetchSheetData,

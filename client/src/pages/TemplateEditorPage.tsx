@@ -3,18 +3,39 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '../stores/appStore';
 import { fetchTemplates, renderPreview } from '../api/client';
+import { useDefaults } from '../hooks/useDefaults';
 import FieldMapper from '../components/FieldMapper';
 
 export default function TemplateEditorPage() {
   const navigate = useNavigate();
-  const { rows, headers, selectedTemplate, setTemplate, mapping } = useAppStore();
+  const { rows, headers, selectedTemplate, setTemplate, setMapping, mapping } = useAppStore();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const { data: defaults } = useDefaults();
 
   const { data: templateData, isLoading } = useQuery({
     queryKey: ['templates'],
     queryFn: fetchTemplates,
   });
+
+  // Auto-select template from defaults
+  useEffect(() => {
+    if (templateData?.templates && !selectedTemplate && defaults?.defaultTemplateId) {
+      const t = templateData.templates.find((t) => t.id === defaults.defaultTemplateId);
+      if (t) setTemplate(t);
+    }
+  }, [templateData, defaults]);
+
+  // Auto-apply mapping from defaults when template is freshly selected
+  useEffect(() => {
+    if (
+      selectedTemplate &&
+      Object.keys(mapping).length === 0 &&
+      defaults?.mappings?.[selectedTemplate.id]
+    ) {
+      setMapping(defaults.mappings[selectedTemplate.id]);
+    }
+  }, [selectedTemplate, mapping, defaults]);
 
   // Auto-render preview when mapping changes
   useEffect(() => {

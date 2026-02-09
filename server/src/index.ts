@@ -8,6 +8,7 @@ import { cardsRouter } from './routes/cards.js';
 import { exportRouter } from './routes/export.js';
 import { templatesRouter } from './routes/templates.js';
 import { imagesRouter } from './routes/images.js';
+import { defaultsRouter } from './routes/defaults.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { warmUp } from './services/renderer.js';
 
@@ -31,6 +32,7 @@ app.use('/api/cards', cardsRouter);
 app.use('/api/export', exportRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/images', imagesRouter);
+app.use('/api/defaults', defaultsRouter);
 
 // Error handler
 app.use(errorHandler);

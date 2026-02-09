@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import SaveDefaultsButton from './SaveDefaultsButton';
 
 interface Step {
   path: string;
@@ -19,7 +20,10 @@ export default function WizardLayout({ steps, children }: WizardLayoutProps) {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
       <header style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>CardMaker</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h1 style={{ fontSize: 24 }}>CardMaker</h1>
+          <SaveDefaultsButton />
+        </div>
         <nav style={{ display: 'flex', gap: 4 }}>
           {steps.map((step, i) => (
             <button

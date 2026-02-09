@@ -14,6 +14,9 @@ client/dist/
 # Export outputs
 output/
 
+# Local defaults
+.cardmaker-defaults.json
+
 # IDE
 .vscode/
 .idea/

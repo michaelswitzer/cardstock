@@ -5,6 +5,7 @@ import type {
   ExportOptions,
   FieldMapping,
   ImageListResponse,
+  LocalDefaults,
   SheetResponse,
   TemplateListResponse,
 } from '@cardmaker/shared';
@@ -74,5 +75,15 @@ export async function startExport(
 
 export async function getExportJob(jobId: string): Promise<ExportJob> {
   const { data } = await api.get(`/export/${jobId}`);
+  return data;
+}
+
+export async function fetchDefaults(): Promise<LocalDefaults> {
+  const { data } = await api.get('/defaults');
+  return data;
+}
+
+export async function saveDefaults(defaults: LocalDefaults): Promise<LocalDefaults> {
+  const { data } = await api.put('/defaults', defaults);
   return data;
 }
