@@ -67,9 +67,14 @@ export function hydrateTemplate(
     const sheetColumn = mapping[slotName];
     if (sheetColumn && cardData[sheetColumn]) {
       const filename = cardData[sheetColumn];
-      return `${artworkBaseUrl}/${encodeURIComponent(filename)}`;
+      return `${artworkBaseUrl}/${filename.split('/').map(encodeURIComponent).join('/')}`;
     }
     return '';
+  });
+
+  // Replace {icon:name} with inline images from resources/
+  result = result.replace(/\{icon:(\w+)\}/g, (_match, name: string) => {
+    return `<img src="${artworkBaseUrl}/resources/${encodeURIComponent(name)}.png" class="inline-icon" />`;
   });
 
   return result;
@@ -106,6 +111,7 @@ export async function buildCardPage(
 <meta charset="utf-8">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+.inline-icon { height: 1em; width: auto; vertical-align: middle; display: inline; }
 ${templateCss}
 </style>
 </head>

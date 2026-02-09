@@ -10,15 +10,26 @@ export const imagesRouter = Router();
 
 /**
  * GET /api/images
- * Lists all image files in the artwork directory.
+ * Lists all image files in the artwork directory, recursively including subdirectories.
  */
 imagesRouter.get('/', async (_req, res, next) => {
   try {
     await fs.mkdir(ARTWORK_DIR, { recursive: true });
-    const files = await fs.readdir(ARTWORK_DIR);
-    const images = files.filter((f) =>
-      /\.(png|jpe?g|gif|svg|webp)$/i.test(f)
-    );
+    const images: string[] = [];
+
+    async function walk(dir: string) {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await walk(fullPath);
+        } else if (/\.(png|jpe?g|gif|svg|webp)$/i.test(entry.name)) {
+          images.push(path.relative(ARTWORK_DIR, fullPath).replace(/\\/g, '/'));
+        }
+      }
+    }
+
+    await walk(ARTWORK_DIR);
     res.json({ images });
   } catch (err) {
     next(err);
