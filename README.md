@@ -38,6 +38,27 @@ Your card data lives in a Google Sheets spreadsheet. Each row is a card and each
 
 Once your data is loaded, click **Continue to Template** (or close and click **Template**) to select a card layout and map your spreadsheet columns to template fields.
 
+## Choosing a Template and Mapping Fields
+
+Click **Template** to open the template editor.
+
+1. **Select a template** from the available layouts (e.g. "Standard Card")
+2. **Map fields** -- Each template field (Title, Body Text, Cost, etc.) has a dropdown. Pick the spreadsheet column that should fill it. Image slots work the same way: point them to a column containing image filenames.
+3. A **live preview** of the first card updates as you change mappings
+4. Click **Done** when you're satisfied
+
+Back on the main screen, all your cards will render with the mapped data.
+
+### Artwork Images
+
+If your template has image slots, place artwork files in the `artwork/` folder at the project root. Your spreadsheet column should contain the filename (e.g. `goblin.png`). Subfolders work too (e.g. `creatures/goblin.png`).
+
+## Saving Defaults
+
+Click **Save Default** (visible in the Data Source and Template modals) to persist your current sheet URL, template choice, and field mappings. The next time you open Cardstock, it will automatically load your saved configuration and render your cards immediately -- no setup needed.
+
+This is useful for the typical workflow: edit your spreadsheet, open Cardstock, and your cards are already there. Click **Refresh** to pull the latest data.
+
 ## Project Structure
 
 ```
