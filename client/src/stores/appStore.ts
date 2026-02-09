@@ -17,6 +17,8 @@ interface AppState {
   mapping: FieldMapping;
 
   // Step 3: Preview
+  cardImages: string[];
+  cardImagesKey: string;
   selectedCards: number[];
 
   // Step 4: Export
@@ -26,6 +28,7 @@ interface AppState {
   setSheetUrl: (url: string) => void;
   setSheetData: (headers: string[], rows: CardData[]) => void;
   setTemplate: (template: CardTemplate) => void;
+  setCardImages: (images: string[], key?: string) => void;
   setMapping: (mapping: FieldMapping) => void;
   setFieldMapping: (templateField: string, sheetColumn: string) => void;
   toggleCardSelection: (index: number) => void;
@@ -41,6 +44,8 @@ const initialState = {
   rows: [],
   selectedTemplate: null,
   mapping: {},
+  cardImages: [],
+  cardImagesKey: '',
   selectedCards: [],
   exportFormat: 'png' as ExportFormat,
 };
@@ -52,7 +57,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setSheetData: (headers, rows) => set({ headers, rows }),
 
-  setTemplate: (template) => set({ selectedTemplate: template, mapping: {} }),
+  setCardImages: (images, key) => set({ cardImages: images, cardImagesKey: key ?? '' }),
+
+  setTemplate: (template) => set({ selectedTemplate: template, mapping: {}, cardImages: [] }),
 
   setMapping: (mapping) => set({ mapping }),
 

@@ -12,6 +12,9 @@ export default function CardPreviewPage() {
     sheetUrl,
     selectedTemplate,
     mapping,
+    cardImages,
+    cardImagesKey,
+    setCardImages,
     selectedCards,
     toggleCardSelection,
     selectAllCards,
@@ -19,7 +22,6 @@ export default function CardPreviewPage() {
     setSheetData,
   } = useAppStore();
 
-  const [cardImages, setCardImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showExport, setShowExport] = useState(false);
@@ -28,13 +30,16 @@ export default function CardPreviewPage() {
   useEffect(() => {
     if (!selectedTemplate || rows.length === 0 || Object.keys(mapping).length === 0) return;
 
+    const inputsKey = JSON.stringify({ t: selectedTemplate.id, m: mapping, r: rows });
+    if (cardImages.length > 0 && inputsKey === cardImagesKey) return;
+
     const key = ++renderKey.current;
     setLoading(true);
 
     renderPreviewBatch(selectedTemplate.id, rows, mapping)
       .then((dataUrls) => {
         if (renderKey.current === key) {
-          setCardImages(dataUrls);
+          setCardImages(dataUrls, inputsKey);
           setLoading(false);
         }
       })
