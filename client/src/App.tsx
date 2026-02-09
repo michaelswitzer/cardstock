@@ -14,7 +14,7 @@ const STEPS = [
 ];
 
 export default function App() {
-  const { loading } = useAutoStart();
+  const { loading, startPath } = useAutoStart();
 
   if (loading) {
     return (
@@ -32,7 +32,7 @@ export default function App() {
         <Route path="/template" element={<TemplateEditorPage />} />
         <Route path="/preview" element={<CardPreviewPage />} />
         <Route path="/export" element={<ExportPage />} />
-        <Route path="*" element={<Navigate to="/data" replace />} />
+        <Route path="*" element={<Navigate to={startPath} replace />} />
       </Routes>
     </WizardLayout>
   );

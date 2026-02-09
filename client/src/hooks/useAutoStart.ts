@@ -1,19 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/appStore';
 import { fetchDefaults, fetchSheetData, fetchTemplates } from '../api/client';
 
 /**
  * On app load, checks for saved defaults. If a complete config exists
  * (sheetUrl + templateId + mapping), fetches data, sets up the store,
- * and navigates directly to the preview page.
+ * and returns '/preview' as the start path.
  *
  * Uses a ref to ensure only one attempt runs (StrictMode fires effects twice).
  */
 export function useAutoStart() {
   const [loading, setLoading] = useState(true);
+  const [startPath, setStartPath] = useState('/data');
   const started = useRef(false);
-  const navigate = useNavigate();
   const { setSheetUrl, setSheetData, setTemplate, setMapping } = useAppStore();
 
   useEffect(() => {
@@ -29,7 +28,6 @@ export function useAutoStart() {
           !defaults.defaultTemplateId ||
           !defaults.mappings?.[defaults.defaultTemplateId]
         ) {
-          setLoading(false);
           return;
         }
 
@@ -41,17 +39,14 @@ export function useAutoStart() {
         const template = templateData.templates.find(
           (t) => t.id === defaults.defaultTemplateId
         );
-        if (!template) {
-          setLoading(false);
-          return;
-        }
+        if (!template) return;
 
         setSheetUrl(defaults.sheetUrl);
         setSheetData(sheetData.headers, sheetData.rows);
         setTemplate(template);
         setMapping(defaults.mappings![defaults.defaultTemplateId!]);
 
-        navigate('/preview', { replace: true });
+        setStartPath('/preview');
       } catch (err) {
         console.error('Auto-start failed:', err);
       } finally {
@@ -62,5 +57,5 @@ export function useAutoStart() {
     run();
   }, []);
 
-  return { loading };
+  return { loading, startPath };
 }
