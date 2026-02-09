@@ -1,23 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/appStore';
-import { renderPreviewBatch } from '../api/client';
+import { renderPreviewBatch, fetchSheetData } from '../api/client';
 import CardGrid from '../components/CardGrid';
+import ExportModal from '../components/ExportModal';
 
 export default function CardPreviewPage() {
   const navigate = useNavigate();
   const {
     rows,
+    sheetUrl,
     selectedTemplate,
     mapping,
     selectedCards,
     toggleCardSelection,
     selectAllCards,
     deselectAllCards,
+    setSheetData,
   } = useAppStore();
 
   const [cardImages, setCardImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const renderKey = useRef<number>(0);
 
   useEffect(() => {
@@ -39,12 +44,28 @@ export default function CardPreviewPage() {
       });
   }, [selectedTemplate, mapping, rows]);
 
+  const handleRefresh = async () => {
+    if (!sheetUrl) return;
+    setRefreshing(true);
+    try {
+      const data = await fetchSheetData(sheetUrl);
+      setSheetData(data.headers, data.rows);
+    } catch (err) {
+      console.error('Refresh failed:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (!selectedTemplate) {
     return (
-      <div>
-        <p>No template selected. Please go back and choose a template first.</p>
-        <button className="secondary" onClick={() => navigate('/template')}>
-          Back to Template
+      <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <h2 style={{ marginBottom: 8 }}>No cards to show yet</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
+          Connect a spreadsheet and choose a template to start making cards.
+        </p>
+        <button className="primary" onClick={() => navigate('/data')}>
+          Set Up Data Source
         </button>
       </div>
     );
@@ -52,7 +73,25 @@ export default function CardPreviewPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <h2>Card Preview</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Cards</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            className="secondary"
+            onClick={handleRefresh}
+            disabled={refreshing || !sheetUrl}
+          >
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+          <button
+            className="primary"
+            onClick={() => setShowExport(true)}
+            disabled={loading}
+          >
+            Export
+          </button>
+        </div>
+      </div>
 
       {loading && (
         <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
@@ -78,18 +117,7 @@ export default function CardPreviewPage() {
         </>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <button className="secondary" onClick={() => navigate('/template')}>
-          Back
-        </button>
-        <button
-          className="primary"
-          onClick={() => navigate('/export')}
-          disabled={loading}
-        >
-          Next: Export
-        </button>
-      </div>
+      <ExportModal open={showExport} onClose={() => setShowExport(false)} />
     </div>
   );
 }

@@ -1,58 +1,48 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import SaveDefaultsButton from './SaveDefaultsButton';
 
-interface Step {
+interface Tab {
   path: string;
   label: string;
 }
 
 interface WizardLayoutProps {
-  steps: Step[];
+  tabs: Tab[];
   children: ReactNode;
 }
 
-export default function WizardLayout({ steps, children }: WizardLayoutProps) {
+export default function WizardLayout({ tabs, children }: WizardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentIndex = steps.findIndex((s) => s.path === location.pathname);
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
       <header style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ marginBottom: 16 }}>
           <h1 style={{ fontSize: 24 }}>CardMaker</h1>
-          <SaveDefaultsButton />
         </div>
         <nav style={{ display: 'flex', gap: 4 }}>
-          {steps.map((step, i) => (
-            <button
-              key={step.path}
-              onClick={() => navigate(step.path)}
-              style={{
-                padding: '10px 20px',
-                background:
-                  i === currentIndex
-                    ? 'var(--primary)'
-                    : i < currentIndex
-                    ? 'var(--success)'
-                    : 'var(--surface-light)',
-                color: 'white',
-                border: 'none',
-                borderRadius:
-                  i === 0
-                    ? '8px 0 0 8px'
-                    : i === steps.length - 1
-                    ? '0 8px 8px 0'
-                    : '0',
-                cursor: 'pointer',
-                fontWeight: i === currentIndex ? 700 : 400,
-                opacity: i <= currentIndex ? 1 : 0.6,
-              }}
-            >
-              {step.label}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const isActive = tab.path === location.pathname;
+            return (
+              <button
+                key={tab.path}
+                onClick={() => navigate(tab.path)}
+                style={{
+                  padding: '10px 20px',
+                  background: isActive ? 'var(--primary)' : 'var(--surface-light)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontWeight: isActive ? 700 : 400,
+                  opacity: 1,
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </nav>
       </header>
       <main>{children}</main>

@@ -5,6 +5,7 @@ import { useAppStore } from '../stores/appStore';
 import { fetchSheetData } from '../api/client';
 import { useDefaults } from '../hooks/useDefaults';
 import DataTable from '../components/DataTable';
+import SaveDefaultsButton from '../components/SaveDefaultsButton';
 
 export default function DataSourcePage() {
   const navigate = useNavigate();
@@ -70,9 +71,10 @@ export default function DataSourcePage() {
             {rows.length} rows loaded with {headers.length} columns
           </p>
           <DataTable headers={headers} rows={rows} />
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <SaveDefaultsButton />
             <button className="primary" onClick={() => navigate('/template')}>
-              Next: Choose Template
+              Continue to Template
             </button>
           </div>
         </>

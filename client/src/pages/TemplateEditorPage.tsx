@@ -5,6 +5,7 @@ import { useAppStore } from '../stores/appStore';
 import { fetchTemplates, renderPreview } from '../api/client';
 import { useDefaults } from '../hooks/useDefaults';
 import FieldMapper from '../components/FieldMapper';
+import SaveDefaultsButton from '../components/SaveDefaultsButton';
 
 export default function TemplateEditorPage() {
   const navigate = useNavigate();
@@ -140,16 +141,14 @@ export default function TemplateEditorPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <button className="secondary" onClick={() => navigate('/data')}>
-          Back
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <SaveDefaultsButton />
         <button
           className="primary"
           onClick={() => navigate('/preview')}
           disabled={!selectedTemplate || Object.keys(mapping).length === 0}
         >
-          Next: Preview Cards
+          Done
         </button>
       </div>
     </div>

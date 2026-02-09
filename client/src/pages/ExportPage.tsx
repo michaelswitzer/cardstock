@@ -155,7 +155,7 @@ export default function ExportPage() {
 
       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
         <button className="secondary" onClick={() => navigate('/preview')}>
-          Back
+          Back to Cards
         </button>
       </div>
     </div>
