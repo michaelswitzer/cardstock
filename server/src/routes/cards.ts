@@ -36,7 +36,7 @@ cardsRouter.post('/preview', async (req, res, next) => {
 
 /**
  * POST /api/cards/preview-batch
- * Renders all cards sequentially on a single page for reliability.
+ * Renders cards in parallel using the page pool.
  * Body: { templateId, cards, mapping }
  * Returns: { dataUrls: string[] }
  */
@@ -55,12 +55,12 @@ cardsRouter.post('/preview-batch', async (req, res, next) => {
 
     const artworkBaseUrl = `http://localhost:${SERVER_PORT}/artwork`;
 
-    const dataUrls: string[] = [];
-    for (const card of cards) {
-      const html = await buildCardPage(templateId, card, mapping, artworkBaseUrl);
-      const dataUrl = await renderCardToDataUrl(html);
-      dataUrls.push(dataUrl);
-    }
+    const dataUrls = await Promise.all(
+      cards.map(async (card) => {
+        const html = await buildCardPage(templateId, card, mapping, artworkBaseUrl);
+        return renderCardToDataUrl(html);
+      })
+    );
 
     res.json({ dataUrls });
   } catch (err) {

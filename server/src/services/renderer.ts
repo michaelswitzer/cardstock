@@ -5,14 +5,20 @@ import {
   CARD_WIDTH_CSS,
   CARD_HEIGHT_CSS,
   TARGET_DPI,
+  PAGE_POOL_SIZE,
 } from '@cardmaker/shared';
 
 let browser: Browser | null = null;
-let renderPage: Page | null = null;
+
+// Page pool: each page can render one card at a time
+const available: Page[] = [];
+const waiters: ((page: Page) => void)[] = [];
+let poolSize = 0;
 
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.connected) {
-    renderPage = null;
+    available.length = 0;
+    poolSize = 0;
     browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -21,46 +27,80 @@ async function getBrowser(): Promise<Browser> {
   return browser;
 }
 
-async function getPage(): Promise<Page> {
-  if (renderPage && !renderPage.isClosed()) {
-    return renderPage;
-  }
+async function createPage(): Promise<Page> {
   const b = await getBrowser();
-  renderPage = await b.newPage();
-  await renderPage.setViewport({
+  const page = await b.newPage();
+  await page.setViewport({
     width: CARD_WIDTH_CSS,
     height: CARD_HEIGHT_CSS,
     deviceScaleFactor: RENDER_SCALE,
   });
-  return renderPage;
+  return page;
+}
+
+async function acquirePage(): Promise<Page> {
+  // Check for an available page that's still open
+  while (available.length > 0) {
+    const page = available.pop()!;
+    if (!page.isClosed()) return page;
+    poolSize--;
+  }
+  // Create a new page if pool isn't full
+  if (poolSize < PAGE_POOL_SIZE) {
+    poolSize++;
+    return createPage();
+  }
+  // Wait for a page to be released
+  return new Promise<Page>(resolve => waiters.push(resolve));
+}
+
+function releasePage(page: Page) {
+  if (page.isClosed()) {
+    poolSize--;
+    return;
+  }
+  const waiter = waiters.shift();
+  if (waiter) {
+    waiter(page);
+  } else {
+    available.push(page);
+  }
 }
 
 /**
- * Pre-warm the browser and page so the first render isn't slow.
+ * Pre-warm the browser and pool so the first render isn't slow.
  */
 export async function warmUp(): Promise<void> {
-  await getPage();
-  console.log('Puppeteer warm: browser and page ready');
+  const pages = await Promise.all(
+    Array.from({ length: PAGE_POOL_SIZE }, () => createPage())
+  );
+  poolSize = PAGE_POOL_SIZE;
+  available.push(...pages);
+  console.log(`Puppeteer warm: browser and ${PAGE_POOL_SIZE} pages ready`);
 }
 
 /**
- * Core screenshot function shared by preview and export paths.
+ * Core screenshot function. Acquires a page from the pool,
+ * renders the HTML, takes a screenshot, then releases the page.
  */
 async function screenshotCard(html: string): Promise<Buffer> {
-  const page = await getPage();
-  await page.setContent(html, { waitUntil: 'domcontentloaded' });
+  const page = await acquirePage();
+  try {
+    await page.setContent(html, { waitUntil: 'networkidle0' });
 
-  const screenshot = await page.screenshot({
-    type: 'png',
-    clip: { x: 0, y: 0, width: CARD_WIDTH_CSS, height: CARD_HEIGHT_CSS },
-  });
+    const screenshot = await page.screenshot({
+      type: 'png',
+      clip: { x: 0, y: 0, width: CARD_WIDTH_CSS, height: CARD_HEIGHT_CSS },
+    });
 
-  return Buffer.from(screenshot);
+    return Buffer.from(screenshot);
+  } finally {
+    releasePage(page);
+  }
 }
 
 /**
  * Renders an HTML string to a PNG buffer at 300 DPI (for export).
- * Only embeds DPI metadata — Puppeteer already outputs at the correct pixel size.
  */
 export async function renderCardToPng(html: string): Promise<Buffer> {
   const buffer = await screenshotCard(html);
@@ -72,7 +112,6 @@ export async function renderCardToPng(html: string): Promise<Buffer> {
 
 /**
  * Lightweight preview render — returns a base64 data URL.
- * Skips sharp entirely since previews don't need DPI metadata.
  */
 export async function renderCardToDataUrl(html: string): Promise<string> {
   const buffer = await screenshotCard(html);
@@ -86,7 +125,8 @@ export async function closeBrowser(): Promise<void> {
   if (browser) {
     await browser.close();
     browser = null;
-    renderPage = null;
+    available.length = 0;
+    poolSize = 0;
   }
 }
 

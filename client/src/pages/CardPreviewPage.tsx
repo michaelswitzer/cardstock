@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/appStore';
 import { renderPreviewBatch } from '../api/client';
@@ -18,26 +18,25 @@ export default function CardPreviewPage() {
 
   const [cardImages, setCardImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const renderKey = useRef<number>(0);
 
   useEffect(() => {
     if (!selectedTemplate || rows.length === 0 || Object.keys(mapping).length === 0) return;
 
-    let cancelled = false;
+    const key = ++renderKey.current;
     setLoading(true);
 
     renderPreviewBatch(selectedTemplate.id, rows, mapping)
       .then((dataUrls) => {
-        if (!cancelled) {
+        if (renderKey.current === key) {
           setCardImages(dataUrls);
           setLoading(false);
         }
       })
       .catch((err) => {
         console.error('Batch preview failed:', err);
-        if (!cancelled) setLoading(false);
+        if (renderKey.current === key) setLoading(false);
       });
-
-    return () => { cancelled = true; };
   }, [selectedTemplate, mapping, rows]);
 
   if (!selectedTemplate) {
