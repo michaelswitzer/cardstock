@@ -45,18 +45,24 @@ export default function ExportProgress({ job }: ExportProgressProps) {
         />
       </div>
       {job.status === 'complete' && job.outputPath && (
-        <a
-          href={job.outputPath}
-          download
-          style={{
-            display: 'inline-block',
-            marginTop: 12,
-            color: 'var(--primary)',
-            textDecoration: 'underline',
-          }}
-        >
-          Download
-        </a>
+        job.outputPath.startsWith('/output') ? (
+          <a
+            href={job.outputPath}
+            download
+            style={{
+              display: 'inline-block',
+              marginTop: 12,
+              color: 'var(--primary)',
+              textDecoration: 'underline',
+            }}
+          >
+            Download
+          </a>
+        ) : (
+          <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>
+            Saved to: <code style={{ color: 'var(--text)' }}>{job.outputPath}</code>
+          </div>
+        )
       )}
     </div>
   );

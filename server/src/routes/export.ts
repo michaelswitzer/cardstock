@@ -98,13 +98,13 @@ async function runExport(
   const timestamp = Date.now();
 
   if (options.format === 'png') {
-    // Save individual PNGs
+    // Save individual PNGs to a folder
     const dir = path.join(OUTPUT_DIR, `cards-${timestamp}`);
     await fs.mkdir(dir, { recursive: true });
     for (let i = 0; i < pngs.length; i++) {
       await fs.writeFile(path.join(dir, `card-${i + 1}.png`), pngs[i]);
     }
-    job.outputPath = `/output/cards-${timestamp}`;
+    job.outputPath = dir;
     job.progress = 100;
   } else if (options.format === 'pdf') {
     const pdfBytes = await composePdf(pngs, {
