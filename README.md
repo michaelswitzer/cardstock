@@ -53,6 +53,24 @@ Back on the main screen, all your cards will render with the mapped data.
 
 If your template has image slots, place artwork files in the `artwork/` folder at the project root. Your spreadsheet column should contain the filename (e.g. `goblin.png`). Subfolders work too (e.g. `creatures/goblin.png`).
 
+### Inline Icons
+
+You can embed small icons directly in your card text using `{icon:name}` syntax. This works in any text field in your spreadsheet.
+
+For example, if a card's body text in your spreadsheet reads:
+
+```
+Costs {icon:fire}{icon:fire} to play. Gains {icon:shield} on defense.
+```
+
+Cardstock will replace each `{icon:name}` with an inline image from `artwork/resources/name.png`, sized to match the surrounding text. To use this:
+
+1. Create an `artwork/resources/` folder
+2. Add your icon images as PNGs (e.g. `fire.png`, `shield.png`, `mana.png`)
+3. Reference them in your spreadsheet cells with `{icon:filename}` (without the `.png` extension)
+
+Icons render at the same height as the text they sit in and align to the baseline, so they flow naturally within sentences.
+
 ## Saving Defaults
 
 Click **Save Default** (visible in the Data Source and Template modals) to persist your current sheet URL, template choice, and field mappings. The next time you open Cardstock, it will automatically load your saved configuration and render your cards immediately -- no setup needed.
