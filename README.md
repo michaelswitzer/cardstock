@@ -95,6 +95,8 @@ Templates live in `server/templates/<id>/` with three files:
 - `template.html` -- Card layout with `{{fieldName}}` and `{{image:slotName}}` placeholders
 - `template.css` -- Card styling
 
+An `example` template is included in the repo as a starting point. To create your own, copy the `server/templates/example/` folder to a new name (e.g. `server/templates/my-game/`) and edit the three files. Your custom templates are gitignored by default so they won't be committed to the repo.
+
 ### Rendering
 
 100 CSS px = 1 inch. Cards are 250x350 CSS px. Puppeteer renders at `deviceScaleFactor: 3`, producing 750x1050 px output at 300 DPI.
