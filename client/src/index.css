@@ -1,12 +1,12 @@
 :root {
-  --bg: #1a1a2e;
-  --surface: #16213e;
-  --surface-light: #1e2d4d;
+  --bg: #105652;
+  --surface: #0d4844;
+  --surface-light: #157169;
   --primary: #e94560;
   --primary-hover: #d63851;
-  --text: #eee;
+  --text: #fcf6c8;
   --text-muted: #999;
-  --border: #2a3a5c;
+  --border: #1a7a74;
   --success: #2ecc71;
   --warning: #f39c12;
   --radius: 8px;
@@ -19,10 +19,16 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Barlow', sans-serif;
+  font-weight: 300;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: 'Eksell Display', serif;
+  font-weight: normal;
 }
 
 button {
@@ -30,8 +36,9 @@ button {
   border: none;
   border-radius: var(--radius);
   padding: 8px 16px;
+  font-family: 'Barlow', sans-serif;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 300;
   transition: background 0.2s;
 }
 

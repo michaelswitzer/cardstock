@@ -38,6 +38,6 @@ app.use('/api/defaults', defaultsRouter);
 app.use(errorHandler);
 
 app.listen(SERVER_PORT, () => {
-  console.log(`CardMaker server running on http://localhost:${SERVER_PORT}`);
+  console.log(`Cardstock server running on http://localhost:${SERVER_PORT}`);
   warmUp().catch((err) => console.warn('Puppeteer warm-up failed:', err.message));
 });

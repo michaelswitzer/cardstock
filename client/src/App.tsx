@@ -29,7 +29,7 @@ export default function App() {
   if (loading) {
     return (
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>CardMaker</h1>
+        <h1 style={{ fontSize: 24, marginBottom: 16 }}>Cardstock</h1>
         <p style={{ color: 'var(--text-muted)' }}>Loading saved session...</p>
       </div>
     );
@@ -38,7 +38,7 @@ export default function App() {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24 }}>CardMaker</h1>
+        <h1 style={{ fontSize: 24 }}>Cardstock</h1>
         <div style={{ display: 'flex', gap: 8 }}>
           {sheetUrl && (
             <button
