@@ -4,14 +4,12 @@ import { fetchDefaults, fetchSheetData, fetchTemplates } from '../api/client';
 
 /**
  * On app load, checks for saved defaults. If a complete config exists
- * (sheetUrl + templateId + mapping), fetches data, sets up the store,
- * and returns '/preview' as the start path.
+ * (sheetUrl + templateId + mapping), fetches data and sets up the store.
  *
  * Uses a ref to ensure only one attempt runs (StrictMode fires effects twice).
  */
 export function useAutoStart() {
   const [loading, setLoading] = useState(true);
-  const [startPath, setStartPath] = useState('/data');
   const started = useRef(false);
   const { setSheetUrl, setSheetData, setTemplate, setMapping } = useAppStore();
 
@@ -45,8 +43,6 @@ export function useAutoStart() {
         setSheetData(sheetData.headers, sheetData.rows);
         setTemplate(template);
         setMapping(defaults.mappings![defaults.defaultTemplateId!]);
-
-        setStartPath('/preview');
       } catch (err) {
         console.error('Auto-start failed:', err);
       } finally {
@@ -57,5 +53,5 @@ export function useAutoStart() {
     run();
   }, []);
 
-  return { loading, startPath };
+  return { loading };
 }

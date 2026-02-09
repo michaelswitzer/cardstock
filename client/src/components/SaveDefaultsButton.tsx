@@ -44,7 +44,7 @@ export default function SaveDefaultsButton() {
       disabled={saveMutation.isPending}
       style={{ fontSize: 13, padding: '6px 14px' }}
     >
-      {showSaved ? 'Saved!' : saveMutation.isPending ? 'Saving...' : 'Save as Defaults'}
+      {showSaved ? 'Saved!' : saveMutation.isPending ? 'Saving...' : 'Save Default'}
     </button>
   );
 }

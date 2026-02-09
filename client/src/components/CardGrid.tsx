@@ -1,10 +1,8 @@
 interface CardGridProps {
   cardImages: string[];
-  selectedCards: number[];
-  onToggle: (index: number) => void;
 }
 
-export default function CardGrid({ cardImages, selectedCards, onToggle }: CardGridProps) {
+export default function CardGrid({ cardImages }: CardGridProps) {
   return (
     <div
       style={{
@@ -16,16 +14,10 @@ export default function CardGrid({ cardImages, selectedCards, onToggle }: CardGr
       {cardImages.map((src, i) => (
         <div
           key={i}
-          onClick={() => onToggle(i)}
           style={{
-            cursor: 'pointer',
-            border: selectedCards.includes(i)
-              ? '3px solid var(--primary)'
-              : '3px solid transparent',
             borderRadius: 'var(--radius)',
             overflow: 'hidden',
             background: 'var(--surface)',
-            transition: 'border-color 0.2s',
           }}
         >
           <img

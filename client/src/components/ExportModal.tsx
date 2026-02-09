@@ -10,7 +10,7 @@ interface ExportModalProps {
 }
 
 export default function ExportModal({ open, onClose }: ExportModalProps) {
-  const { rows, selectedTemplate, mapping, selectedCards, exportFormat, setExportFormat } =
+  const { rows, selectedTemplate, mapping, exportFormat, setExportFormat } =
     useAppStore();
 
   const [job, setJob] = useState<ExportJob | null>(null);
@@ -35,7 +35,7 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
     try {
       const jobId = await startExport(selectedTemplate.id, rows, mapping, {
         format: exportFormat,
-        selectedCards,
+        selectedCards: [],
         pdfPageSize,
         pdfCropMarks,
         ttsColumns,
@@ -166,9 +166,7 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
         )}
 
         <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-          {selectedCards.length > 0
-            ? `Exporting ${selectedCards.length} selected cards`
-            : `Exporting all ${rows.length} cards`}
+          Exporting all {rows.length} cards
         </div>
 
         <button
