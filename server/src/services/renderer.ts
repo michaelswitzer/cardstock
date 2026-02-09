@@ -90,6 +90,7 @@ async function screenshotCard(html: string): Promise<Buffer> {
 
     const screenshot = await page.screenshot({
       type: 'png',
+      omitBackground: true,
       clip: { x: 0, y: 0, width: CARD_WIDTH_CSS, height: CARD_HEIGHT_CSS },
     });
 

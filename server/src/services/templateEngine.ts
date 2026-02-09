@@ -111,6 +111,7 @@ export async function buildCardPage(
 <meta charset="utf-8">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { background: transparent; }
 .inline-icon { height: 1em; width: auto; vertical-align: middle; display: inline; }
 ${templateCss}
 </style>
