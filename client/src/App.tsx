@@ -4,6 +4,7 @@ import DataSourcePage from './pages/DataSourcePage';
 import TemplateEditorPage from './pages/TemplateEditorPage';
 import CardPreviewPage from './pages/CardPreviewPage';
 import ExportPage from './pages/ExportPage';
+import { useAutoStart } from './hooks/useAutoStart';
 
 const STEPS = [
   { path: '/data', label: '1. Data Source' },
@@ -13,6 +14,17 @@ const STEPS = [
 ];
 
 export default function App() {
+  const { loading } = useAutoStart();
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
+        <h1 style={{ fontSize: 24, marginBottom: 16 }}>CardMaker</h1>
+        <p style={{ color: 'var(--text-muted)' }}>Loading saved session...</p>
+      </div>
+    );
+  }
+
   return (
     <WizardLayout steps={STEPS}>
       <Routes>
