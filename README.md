@@ -24,7 +24,19 @@ cd server && npx tsx src/index.ts    # API server on port 3001
 cd client && npx vite                # Dev server on port 5173
 ```
 
-Open http://localhost:5173, click **Data Source** to connect a spreadsheet, then **Template** to pick a layout and map fields.
+Open http://localhost:5173.
+
+## Connecting a Google Sheet
+
+Your card data lives in a Google Sheets spreadsheet. Each row is a card and each column is a field (e.g. Name, Cost, Description, Image).
+
+1. Open your spreadsheet in Google Sheets
+2. Go to **File > Share > Publish to web**
+3. In the dialog, select **Entire Document** and **Web page**, then click **Publish**
+4. Copy the URL that appears (it looks like `https://docs.google.com/spreadsheets/d/e/.../pubhtml`)
+5. In Cardstock, click **Data Source**, paste the URL, and click **Fetch Data**
+
+Once your data is loaded, click **Continue to Template** (or close and click **Template**) to select a card layout and map your spreadsheet columns to template fields.
 
 ## Project Structure
 
