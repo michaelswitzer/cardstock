@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+Thumbs.db
+
+# Build outputs
+shared/dist/
+server/dist/
+client/dist/
+
+# Export outputs
+output/
+*.png
+*.pdf
+!artwork/**/*.png
+!server/templates/**/*.png
+
+# IDE
+.vscode/
+.idea/

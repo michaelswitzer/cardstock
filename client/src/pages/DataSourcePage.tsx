@@ -1,0 +1,73 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import { useAppStore } from '../stores/appStore';
+import { fetchSheetData } from '../api/client';
+import DataTable from '../components/DataTable';
+
+export default function DataSourcePage() {
+  const navigate = useNavigate();
+  const { sheetUrl, setSheetUrl, setSheetData, headers, rows } = useAppStore();
+  const [inputUrl, setInputUrl] = useState(sheetUrl);
+
+  const fetchMutation = useMutation({
+    mutationFn: fetchSheetData,
+    onSuccess: (data) => {
+      setSheetUrl(inputUrl);
+      setSheetData(data.headers, data.rows);
+    },
+  });
+
+  const handleFetch = () => {
+    if (!inputUrl.trim()) return;
+    fetchMutation.mutate(inputUrl.trim());
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <h2>Data Source</h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+        Paste the URL of a published Google Sheet. The sheet must be published to
+        the web (File &rarr; Share &rarr; Publish to web).
+      </p>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input
+          type="url"
+          value={inputUrl}
+          onChange={(e) => setInputUrl(e.target.value)}
+          placeholder="https://docs.google.com/spreadsheets/d/..."
+          style={{ flex: 1 }}
+          onKeyDown={(e) => e.key === 'Enter' && handleFetch()}
+        />
+        <button
+          className="primary"
+          onClick={handleFetch}
+          disabled={fetchMutation.isPending || !inputUrl.trim()}
+        >
+          {fetchMutation.isPending ? 'Loading...' : 'Fetch Data'}
+        </button>
+      </div>
+
+      {fetchMutation.isError && (
+        <div style={{ color: 'var(--primary)', fontSize: 14 }}>
+          Error: {(fetchMutation.error as Error).message}
+        </div>
+      )}
+
+      {rows.length > 0 && (
+        <>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+            {rows.length} rows loaded with {headers.length} columns
+          </p>
+          <DataTable headers={headers} rows={rows} />
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button className="primary" onClick={() => navigate('/template')}>
+              Next: Choose Template
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

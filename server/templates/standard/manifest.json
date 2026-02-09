@@ -1,0 +1,17 @@
+{
+  "name": "Standard Card",
+  "description": "A standard 2.5\" x 3.5\" card with title, image, body text, and type line.",
+  "width": 2.5,
+  "height": 3.5,
+  "fields": [
+    { "name": "title", "label": "Title", "type": "text" },
+    { "name": "type", "label": "Type", "type": "text" },
+    { "name": "body", "label": "Body Text", "type": "textarea" },
+    { "name": "cost", "label": "Cost", "type": "text" },
+    { "name": "power", "label": "Power", "type": "text" },
+    { "name": "toughness", "label": "Toughness", "type": "text" }
+  ],
+  "imageSlots": [
+    { "name": "artwork", "label": "Card Artwork", "width": 230, "height": 170 }
+  ]
+}

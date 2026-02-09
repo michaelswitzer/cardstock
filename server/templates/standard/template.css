@@ -1,0 +1,108 @@
+/* 100 CSS px = 1 inch. Card is 250x350 CSS px = 2.5x3.5 inches */
+.card {
+  width: 250px;
+  height: 350px;
+  border: 2px solid #333;
+  border-radius: 12px;
+  background: #f5f0e6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: #ecf0f1;
+  font-size: 14px;
+  font-weight: bold;
+  min-height: 32px;
+}
+
+.card-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-cost {
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.card-image {
+  width: 230px;
+  height: 170px;
+  margin: 6px auto;
+  background: #ddd;
+  border: 1px solid #bbb;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-type {
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #ede8d8;
+}
+
+.card-body {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #333;
+  overflow: hidden;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #2c3e50;
+  background: #ede8d8;
+  border-top: 1px solid #ccc;
+}
+
+.card-power,
+.card-toughness {
+  min-width: 16px;
+  text-align: center;
+}
+
+.card-divider {
+  margin: 0 2px;
+  color: #999;
+}
