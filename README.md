@@ -70,6 +70,16 @@ Cardstock will replace each `{icon:name}` with an inline image from `artwork/ico
 
 Icons render at the same height as the text they sit in and align to the baseline, so they flow naturally within sentences.
 
+### Text Formatting
+
+You can use markdown-style formatting in any text field in your spreadsheet:
+
+- `**bold**` → **bold**
+- `*italic*` → *italic*
+- `~~strikethrough~~` → ~~strikethrough~~
+
+Nesting works too: `**bold *and italic***` renders as expected. Formatting can be combined with inline icons: `{icon:fire} **costs 2** to play`.
+
 ## Saving Defaults
 
 Click **Save Default** (visible in the Data Source and Template modals) to persist your current sheet URL, template choice, and field mappings. The next time you open Cardstock, it will automatically load your saved configuration and render your cards immediately -- no setup needed.

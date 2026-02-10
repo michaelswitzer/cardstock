@@ -92,7 +92,20 @@ export function hydrateTemplate(
     return `<img src="${artworkBaseUrl}/icons/${encodeURIComponent(name)}.png" class="inline-icon" />`;
   });
 
+  // Convert markdown-style formatting to HTML tags
+  result = formatText(result);
+
   return result;
+}
+
+function formatText(html: string): string {
+  // Bold: **text** → <strong>text</strong> (must come before italic)
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic: *text* → <em>text</em>
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Strikethrough: ~~text~~ → <s>text</s>
+  html = html.replace(/~~(.+?)~~/g, '<s>$1</s>');
+  return html;
 }
 
 function escapeHtml(text: string): string {
