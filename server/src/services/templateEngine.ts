@@ -6,6 +6,9 @@ import type { CardData, CardTemplate, FieldMapping } from '@cardmaker/shared';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.resolve(__dirname, '..', '..', 'templates');
 
+// In-memory cache for template files (keyed by template ID)
+const templateCache = new Map<string, { html: string; css: string }>();
+
 export async function listTemplates(): Promise<CardTemplate[]> {
   const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true });
   const templates: CardTemplate[] = [];
@@ -30,14 +33,26 @@ export async function getTemplate(id: string): Promise<CardTemplate> {
   return { ...manifest, id };
 }
 
+async function loadTemplatePair(id: string): Promise<{ html: string; css: string }> {
+  const cached = templateCache.get(id);
+  if (cached) return cached;
+
+  const [html, css] = await Promise.all([
+    fs.readFile(path.join(TEMPLATES_DIR, id, 'template.html'), 'utf-8'),
+    fs.readFile(path.join(TEMPLATES_DIR, id, 'template.css'), 'utf-8'),
+  ]);
+
+  const pair = { html, css };
+  templateCache.set(id, pair);
+  return pair;
+}
+
 export async function loadTemplateHTML(id: string): Promise<string> {
-  const htmlPath = path.join(TEMPLATES_DIR, id, 'template.html');
-  return fs.readFile(htmlPath, 'utf-8');
+  return (await loadTemplatePair(id)).html;
 }
 
 export async function loadTemplateCSS(id: string): Promise<string> {
-  const cssPath = path.join(TEMPLATES_DIR, id, 'template.css');
-  return fs.readFile(cssPath, 'utf-8');
+  return (await loadTemplatePair(id)).css;
 }
 
 /**
@@ -98,10 +113,7 @@ export async function buildCardPage(
   mapping: FieldMapping,
   artworkBaseUrl: string
 ): Promise<string> {
-  const [templateHtml, templateCss] = await Promise.all([
-    loadTemplateHTML(templateId),
-    loadTemplateCSS(templateId),
-  ]);
+  const { html: templateHtml, css: templateCss } = await loadTemplatePair(templateId);
 
   const hydratedBody = hydrateTemplate(templateHtml, cardData, mapping, artworkBaseUrl);
 

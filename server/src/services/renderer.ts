@@ -86,7 +86,7 @@ export async function warmUp(): Promise<void> {
 async function screenshotCard(html: string): Promise<Buffer> {
   const page = await acquirePage();
   try {
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    await page.setContent(html, { waitUntil: 'load' });
 
     const screenshot = await page.screenshot({
       type: 'png',
