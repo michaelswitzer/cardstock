@@ -1,12 +1,12 @@
 :root {
-  --bg: #105652;
-  --surface: #0d4844;
-  --surface-light: #157169;
-  --primary: #e94560;
-  --primary-hover: #d63851;
-  --text: #fcf6c8;
-  --text-muted: #999;
-  --border: #1a7a74;
+  --bg: #1e1e1e;
+  --surface: #2a2a2a;
+  --surface-light: #353535;
+  --primary: #505050;
+  --primary-hover: #606060;
+  --text: #d4d4d4;
+  --text-muted: #888;
+  --border: #404040;
   --success: #2ecc71;
   --warning: #f39c12;
   --radius: 8px;
@@ -19,7 +19,7 @@
 }
 
 body {
-  font-family: 'Barlow', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-weight: 300;
   background: var(--bg);
   color: var(--text);
@@ -27,8 +27,8 @@ body {
 }
 
 h1, h2, h3 {
-  font-family: 'Eksell Display', serif;
-  font-weight: normal;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
 }
 
 button {
@@ -36,7 +36,7 @@ button {
   border: none;
   border-radius: var(--radius);
   padding: 8px 16px;
-  font-family: 'Barlow', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: 300;
   transition: background 0.2s;

@@ -53,7 +53,7 @@ export default function App() {
             <button
               className="primary"
               onClick={() => setShowExport(true)}
-              style={{ background: '#000' }}
+
             >
               Export
             </button>

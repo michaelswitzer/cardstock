@@ -44,6 +44,14 @@ export default function CardPreviewPage() {
 
   const isConfigured = !!selectedTemplate && rows.length > 0 && Object.keys(mapping).length > 0;
 
+  const cardLabels = isConfigured
+    ? rows.map((row) => {
+        const titleField = selectedTemplate!.fields.find((f) => f.name === 'title');
+        const col = titleField ? mapping[titleField.name] : undefined;
+        return col && row[col] ? row[col] : '';
+      })
+    : [];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', gap: 8 }}>
@@ -79,7 +87,7 @@ export default function CardPreviewPage() {
       )}
 
       {!loading && cardImages.length > 0 && (
-        <CardGrid cardImages={cardImages} />
+        <CardGrid cardImages={cardImages} cardLabels={cardLabels} />
       )}
 
       <DataSourceModal

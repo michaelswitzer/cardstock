@@ -1,13 +1,14 @@
 interface CardGridProps {
   cardImages: string[];
+  cardLabels?: string[];
 }
 
-export default function CardGrid({ cardImages }: CardGridProps) {
+export default function CardGrid({ cardImages, cardLabels }: CardGridProps) {
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
         gap: 12,
       }}
     >
@@ -33,7 +34,7 @@ export default function CardGrid({ cardImages }: CardGridProps) {
               textAlign: 'center',
             }}
           >
-            Card {i + 1}
+            {cardLabels?.[i] ? `Card ${i + 1}: ${cardLabels[i]}` : `Card ${i + 1}`}
           </div>
         </div>
       ))}
