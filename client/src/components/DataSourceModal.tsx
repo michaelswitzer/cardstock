@@ -5,6 +5,7 @@ import { fetchSheetData } from '../api/client';
 import { useDefaults } from '../hooks/useDefaults';
 import DataTable from './DataTable';
 import SaveDefaultsButton from './SaveDefaultsButton';
+import ClearDefaultButton from './ClearDefaultButton';
 
 interface DataSourceModalProps {
   open: boolean;
@@ -123,6 +124,7 @@ export default function DataSourceModal({ open, onClose, onContinueToTemplate }:
             </p>
             <DataTable headers={headers} rows={rows} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <ClearDefaultButton target="dataSource" />
               <SaveDefaultsButton />
               <button className="primary" onClick={onContinueToTemplate}>
                 Continue to Template

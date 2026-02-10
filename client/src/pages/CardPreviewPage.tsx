@@ -21,6 +21,7 @@ export default function CardPreviewPage() {
   const renderKey = useRef<number>(0);
 
   useEffect(() => {
+    if (showDataSource || showTemplate) return;
     if (!selectedTemplate || rows.length === 0 || Object.keys(mapping).length === 0) return;
 
     const inputsKey = JSON.stringify({ t: selectedTemplate.id, m: mapping, r: rows });
@@ -40,7 +41,7 @@ export default function CardPreviewPage() {
         console.error('Batch preview failed:', err);
         if (renderKey.current === key) setLoading(false);
       });
-  }, [selectedTemplate, mapping, rows]);
+  }, [selectedTemplate, mapping, rows, showDataSource, showTemplate]);
 
   const isConfigured = !!selectedTemplate && rows.length > 0 && Object.keys(mapping).length > 0;
 

@@ -6,6 +6,7 @@ import { fetchSheetData } from '../api/client';
 import { useDefaults } from '../hooks/useDefaults';
 import DataTable from '../components/DataTable';
 import SaveDefaultsButton from '../components/SaveDefaultsButton';
+import ClearDefaultButton from '../components/ClearDefaultButton';
 
 export default function DataSourcePage() {
   const navigate = useNavigate();
@@ -72,6 +73,7 @@ export default function DataSourcePage() {
           </p>
           <DataTable headers={headers} rows={rows} />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <ClearDefaultButton target="dataSource" />
             <SaveDefaultsButton />
             <button className="primary" onClick={() => navigate('/template')}>
               Continue to Template

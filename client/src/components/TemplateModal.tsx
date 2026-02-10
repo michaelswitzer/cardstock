@@ -5,6 +5,7 @@ import { fetchTemplates, renderPreview } from '../api/client';
 import { useDefaults } from '../hooks/useDefaults';
 import FieldMapper from './FieldMapper';
 import SaveDefaultsButton from './SaveDefaultsButton';
+import ClearDefaultButton from './ClearDefaultButton';
 
 interface TemplateModalProps {
   open: boolean;
@@ -179,6 +180,7 @@ export default function TemplateModal({ open, onClose }: TemplateModalProps) {
             )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <ClearDefaultButton target="template" />
               <SaveDefaultsButton />
               <button
                 className="primary"

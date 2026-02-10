@@ -6,6 +6,7 @@ import { fetchTemplates, renderPreview } from '../api/client';
 import { useDefaults } from '../hooks/useDefaults';
 import FieldMapper from '../components/FieldMapper';
 import SaveDefaultsButton from '../components/SaveDefaultsButton';
+import ClearDefaultButton from '../components/ClearDefaultButton';
 
 export default function TemplateEditorPage() {
   const navigate = useNavigate();
@@ -142,6 +143,7 @@ export default function TemplateEditorPage() {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <ClearDefaultButton target="template" />
         <SaveDefaultsButton />
         <button
           className="primary"
