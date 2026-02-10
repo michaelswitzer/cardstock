@@ -28,18 +28,18 @@ export default function App() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>Cardstock</h1>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--sp-5)' }}>
+        <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-4)' }}>Cardstock <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span></h1>
         <p style={{ color: 'var(--text-muted)' }}>Loading saved session...</p>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24 }}>Cardstock</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--sp-5)' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-5)' }}>
+        <h1 style={{ fontSize: 26 }}>Cardstock <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span></h1>
+        <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
           {sheetUrl && (
             <button
               className="secondary"

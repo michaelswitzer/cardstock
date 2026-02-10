@@ -35,14 +35,14 @@ export default function DataSourcePage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
       <h2>Data Source</h2>
-      <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+      <p style={{ color: 'var(--text-muted)' }}>
         Paste the URL of a published Google Sheet. The sheet must be published to
         the web (File &rarr; Share &rarr; Publish to web).
       </p>
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
         <input
           type="url"
           value={inputUrl}
@@ -61,7 +61,7 @@ export default function DataSourcePage() {
       </div>
 
       {fetchMutation.isError && (
-        <div style={{ color: 'var(--primary)', fontSize: 14 }}>
+        <div style={{ color: 'var(--error)', fontSize: 14 }}>
           Error: {(fetchMutation.error as Error).message}
         </div>
       )}
@@ -72,7 +72,7 @@ export default function DataSourcePage() {
             {rows.length} rows loaded with {headers.length} columns
           </p>
           <DataTable headers={headers} rows={rows} />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-2)' }}>
             <ClearDefaultButton target="dataSource" />
             <SaveDefaultsButton />
             <button className="primary" onClick={() => navigate('/template')}>

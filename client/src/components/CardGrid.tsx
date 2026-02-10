@@ -9,18 +9,11 @@ export default function CardGrid({ cardImages, cardLabels }: CardGridProps) {
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-        gap: 12,
+        gap: 'var(--sp-3)',
       }}
     >
       {cardImages.map((src, i) => (
-        <div
-          key={i}
-          style={{
-            borderRadius: 'var(--radius)',
-            overflow: 'hidden',
-            background: 'var(--surface)',
-          }}
-        >
+        <div key={i} className="card-item">
           <img
             src={src}
             alt={`Card ${i + 1}`}
@@ -28,7 +21,7 @@ export default function CardGrid({ cardImages, cardLabels }: CardGridProps) {
           />
           <div
             style={{
-              padding: '4px 8px',
+              padding: 'var(--sp-1) var(--sp-2)',
               fontSize: 12,
               color: 'var(--text-muted)',
               textAlign: 'center',

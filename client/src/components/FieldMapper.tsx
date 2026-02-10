@@ -14,12 +14,12 @@ export default function FieldMapper({ template, sheetHeaders }: FieldMapperProps
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <h3 style={{ fontSize: 16, marginBottom: 4 }}>Map Fields</h3>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
+      <h3 style={{ marginBottom: 'var(--sp-1)' }}>Map Fields</h3>
       {allSlots.map((slot) => (
         <div
           key={slot.name}
-          style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}
         >
           <label
             style={{

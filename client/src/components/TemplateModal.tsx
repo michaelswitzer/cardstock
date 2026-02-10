@@ -68,40 +68,21 @@ export default function TemplateModal({ open, onClose }: TemplateModalProps) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
+      className="modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        style={{
-          background: 'var(--bg)',
-          borderRadius: 12,
-          border: '1px solid var(--border)',
-          padding: 24,
-          width: '100%',
-          maxWidth: 800,
-          maxHeight: '80vh',
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
+        className="modal-panel"
+        style={{ width: '100%', maxWidth: 800, maxHeight: '80vh', overflow: 'auto' }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0 }}>Template & Field Mapping</h2>
           <button
             className="secondary"
             onClick={onClose}
-            style={{ padding: '4px 10px', fontSize: 13 }}
+            style={{ padding: 'var(--sp-1) 10px', fontSize: 13 }}
           >
             Close
           </button>
@@ -114,9 +95,9 @@ export default function TemplateModal({ open, onClose }: TemplateModalProps) {
         ) : (
           <>
             <div>
-              <h3 style={{ fontSize: 16, marginBottom: 8 }}>Select Template</h3>
+              <h3 style={{ marginBottom: 'var(--sp-2)' }}>Select Template</h3>
               {isLoading && <p>Loading templates...</p>}
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
                 {templateData?.templates.map((t) => (
                   <button
                     key={t.id}
@@ -130,7 +111,7 @@ export default function TemplateModal({ open, onClose }: TemplateModalProps) {
             </div>
 
             {selectedTemplate && (
-              <div style={{ display: 'flex', gap: 24 }}>
+              <div style={{ display: 'flex', gap: 'var(--sp-5)' }}>
                 <div style={{ flex: 1 }}>
                   <FieldMapper template={selectedTemplate} sheetHeaders={headers} />
                 </div>
@@ -141,10 +122,10 @@ export default function TemplateModal({ open, onClose }: TemplateModalProps) {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 'var(--sp-2)',
                   }}
                 >
-                  <h3 style={{ fontSize: 16 }}>Preview</h3>
+                  <h3>Preview</h3>
                   {previewLoading && <p style={{ fontSize: 13 }}>Rendering...</p>}
                   {previewUrl && (
                     <img
@@ -179,7 +160,7 @@ export default function TemplateModal({ open, onClose }: TemplateModalProps) {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-2)' }}>
               <ClearDefaultButton target="template" />
               <SaveDefaultsButton />
               <button

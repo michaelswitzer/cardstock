@@ -38,7 +38,7 @@ export default function ExportProgress({ job }: ExportProgressProps) {
             height: '100%',
             width: `${job.progress}%`,
             background:
-              job.status === 'error' ? 'var(--primary)' : 'var(--success)',
+              job.status === 'error' ? 'var(--error)' : 'var(--success)',
             transition: 'width 0.3s',
             borderRadius: 4,
           }}
@@ -53,7 +53,6 @@ export default function ExportProgress({ job }: ExportProgressProps) {
               display: 'inline-block',
               marginTop: 12,
               color: 'var(--primary)',
-              textDecoration: 'underline',
             }}
           >
             Download

@@ -54,8 +54,8 @@ export default function CardPreviewPage() {
     : [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+      <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
         <button className="secondary" onClick={() => setShowDataSource(true)}>
           Data Source
         </button>
@@ -65,12 +65,12 @@ export default function CardPreviewPage() {
       </div>
 
       {!isConfigured && (
-        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <h3 style={{ marginBottom: 8 }}>No cards to show yet</h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
+        <div style={{ textAlign: 'center', padding: '60px var(--sp-5)' }}>
+          <h3 style={{ marginBottom: 'var(--sp-2)' }}>No cards to show yet</h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-5)' }}>
             Connect a spreadsheet and choose a template to start making cards.
           </p>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'center' }}>
             <button className="primary" onClick={() => setShowDataSource(true)}>
               Set Up Data Source
             </button>

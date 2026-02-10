@@ -71,31 +71,14 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
+      className="modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget && !exporting) onClose();
       }}
     >
       <div
-        style={{
-          background: 'var(--bg)',
-          borderRadius: 12,
-          border: '1px solid var(--border)',
-          padding: 24,
-          width: '100%',
-          maxWidth: 560,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
+        className="modal-panel"
+        style={{ width: '100%', maxWidth: 560 }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0 }}>Export</h2>
@@ -103,7 +86,7 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
             <button
               className="secondary"
               onClick={onClose}
-              style={{ padding: '4px 10px', fontSize: 13 }}
+              style={{ padding: 'var(--sp-1) 10px', fontSize: 13 }}
             >
               Close
             </button>
@@ -111,36 +94,36 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
         </div>
 
         <div>
-          <h3 style={{ fontSize: 16, marginBottom: 8 }}>Format</h3>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <h3 style={{ marginBottom: 'var(--sp-2)' }}>Format</h3>
+          <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
             {formatOptions.map((opt) => (
               <button
                 key={opt.value}
                 className={exportFormat === opt.value ? 'primary' : 'secondary'}
                 onClick={() => setExportFormat(opt.value)}
-                style={{ flex: 1, textAlign: 'left', padding: '12px 16px' }}
+                style={{ flex: 1, textAlign: 'left', padding: 'var(--sp-3) var(--sp-4)' }}
               >
                 <div style={{ fontWeight: 600 }}>{opt.label}</div>
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{opt.desc}</div>
+                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 'var(--sp-1)' }}>{opt.desc}</div>
               </button>
             ))}
           </div>
         </div>
 
         {exportFormat === 'pdf' && (
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 'var(--sp-4)', alignItems: 'center' }}>
             <label style={{ fontSize: 14 }}>
               Page Size:
               <select
                 value={pdfPageSize}
                 onChange={(e) => setPdfPageSize(e.target.value as 'letter' | 'a4')}
-                style={{ marginLeft: 8 }}
+                style={{ marginLeft: 'var(--sp-2)' }}
               >
                 <option value="letter">Letter (8.5 x 11")</option>
                 <option value="a4">A4 (210 x 297mm)</option>
               </select>
             </label>
-            <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
               <input
                 type="checkbox"
                 checked={pdfCropMarks}
@@ -160,7 +143,7 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
               max={10}
               value={ttsColumns}
               onChange={(e) => setTtsColumns(Number(e.target.value))}
-              style={{ width: 60, marginLeft: 8 }}
+              style={{ width: 60, marginLeft: 'var(--sp-2)' }}
             />
           </label>
         )}
@@ -173,7 +156,7 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
           className="primary"
           onClick={handleExport}
           disabled={exporting}
-          style={{ alignSelf: 'flex-start', padding: '12px 32px', fontSize: 16 }}
+          style={{ alignSelf: 'flex-start', padding: 'var(--sp-3) var(--sp-6)', fontSize: 16 }}
         >
           {exporting ? 'Exporting...' : 'Start Export'}
         </button>

@@ -73,13 +73,13 @@ export default function TemplateEditorPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
       <h2>Template & Field Mapping</h2>
 
       <div>
-        <h3 style={{ fontSize: 16, marginBottom: 8 }}>Select Template</h3>
+        <h3 style={{ marginBottom: 'var(--sp-2)' }}>Select Template</h3>
         {isLoading && <p>Loading templates...</p>}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
           {templateData?.templates.map((t) => (
             <button
               key={t.id}
@@ -93,7 +93,7 @@ export default function TemplateEditorPage() {
       </div>
 
       {selectedTemplate && (
-        <div style={{ display: 'flex', gap: 24 }}>
+        <div style={{ display: 'flex', gap: 'var(--sp-5)' }}>
           <div style={{ flex: 1 }}>
             <FieldMapper template={selectedTemplate} sheetHeaders={headers} />
           </div>
@@ -104,10 +104,10 @@ export default function TemplateEditorPage() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 8,
+              gap: 'var(--sp-2)',
             }}
           >
-            <h3 style={{ fontSize: 16 }}>Preview</h3>
+            <h3>Preview</h3>
             {previewLoading && <p style={{ fontSize: 13 }}>Rendering...</p>}
             {previewUrl && (
               <img
@@ -142,7 +142,7 @@ export default function TemplateEditorPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-2)' }}>
         <ClearDefaultButton target="template" />
         <SaveDefaultsButton />
         <button

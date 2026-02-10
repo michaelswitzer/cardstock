@@ -1,15 +1,30 @@
 :root {
-  --bg: #1e1e1e;
-  --surface: #2a2a2a;
-  --surface-light: #353535;
-  --primary: #505050;
-  --primary-hover: #606060;
-  --text: #d4d4d4;
-  --text-muted: #888;
-  --border: #404040;
+  --bg: #1a1a1e;
+  --surface: #242428;
+  --surface-light: #2e2e33;
+  --primary: #e07830;
+  --primary-hover: #c86820;
+  --primary-subtle: rgba(224, 120, 48, 0.12);
+  --text: #d8d8da;
+  --text-muted: #808088;
+  --border: #38383e;
+  --error: #d44;
   --success: #2ecc71;
   --warning: #f39c12;
-  --radius: 8px;
+  --radius: 6px;
+  --radius-lg: 12px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-8: 48px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -20,40 +35,64 @@
 
 body {
   font-family: 'Open Sans', sans-serif;
-  font-weight: 300;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
 }
 
-h1, h2, h3 {
+h1 {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+h2 {
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
+  font-size: 20px;
 }
+
+h3 {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Buttons */
 
 button {
   cursor: pointer;
   border: none;
   border-radius: var(--radius);
-  padding: 8px 16px;
+  padding: var(--sp-2) var(--sp-4);
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
-  font-weight: 300;
-  transition: background 0.2s;
+  font-weight: 500;
+  transition: all 0.15s ease;
 }
 
 button.primary {
   background: var(--primary);
   color: white;
+  box-shadow: var(--shadow-sm);
 }
 
 button.primary:hover {
   background: var(--primary-hover);
+  box-shadow: var(--shadow-md);
+}
+
+button.primary:active {
+  transform: scale(0.98);
 }
 
 button.primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 button.secondary {
@@ -64,21 +103,42 @@ button.secondary {
 
 button.secondary:hover {
   background: var(--border);
+  border-color: #48484e;
 }
 
+button.secondary:active {
+  transform: scale(0.98);
+}
+
+/* Form elements */
+
 input, select {
-  background: var(--surface-light);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px 12px;
+  padding: 10px var(--sp-3);
   color: var(--text);
+  font-family: 'Open Sans', sans-serif;
   font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 input:focus, select:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-subtle);
 }
+
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+select {
+  cursor: pointer;
+}
+
+/* Tables */
 
 table {
   width: 100%;
@@ -86,9 +146,10 @@ table {
 }
 
 th, td {
-  padding: 8px 12px;
+  padding: var(--sp-2) var(--sp-3);
   text-align: left;
   border-bottom: 1px solid var(--border);
+  font-size: 13px;
 }
 
 th {
@@ -96,4 +157,69 @@ th {
   font-weight: 600;
   position: sticky;
   top: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* Card grid items */
+
+.card-item {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+}
+
+.card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Modal overlay */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-panel {
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Links */
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
