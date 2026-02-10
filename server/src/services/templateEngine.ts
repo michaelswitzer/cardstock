@@ -89,7 +89,7 @@ export function hydrateTemplate(
 
   // Replace {icon:name} with inline images from resources/
   result = result.replace(/\{icon:(\w+)\}/g, (_match, name: string) => {
-    return `<img src="${artworkBaseUrl}/resources/${encodeURIComponent(name)}.png" class="inline-icon" />`;
+    return `<img src="${artworkBaseUrl}/icons/${encodeURIComponent(name)}.png" class="inline-icon" />`;
   });
 
   return result;

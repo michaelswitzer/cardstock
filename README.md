@@ -63,11 +63,10 @@ For example, if a card's body text in your spreadsheet reads:
 Costs {icon:fire}{icon:fire} to play. Gains {icon:shield} on defense.
 ```
 
-Cardstock will replace each `{icon:name}` with an inline image from `artwork/resources/name.png`, sized to match the surrounding text. To use this:
+Cardstock will replace each `{icon:name}` with an inline image from `artwork/icons/name.png`, sized to match the surrounding text. To use this:
 
-1. Create an `artwork/resources/` folder
-2. Add your icon images as PNGs (e.g. `fire.png`, `shield.png`, `mana.png`)
-3. Reference them in your spreadsheet cells with `{icon:filename}` (without the `.png` extension)
+1. Add your icon images as PNGs to the `artwork/icons/` folder (e.g. `fire.png`, `shield.png`, `mana.png`)
+2. Reference them in your spreadsheet cells with `{icon:filename}` (without the `.png` extension)
 
 Icons render at the same height as the text they sit in and align to the baseline, so they flow naturally within sentences.
 
