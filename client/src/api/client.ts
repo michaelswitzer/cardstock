@@ -38,6 +38,28 @@ export async function fetchTemplate(id: string) {
   return data;
 }
 
+export async function createTemplate(input: {
+  id: string;
+  manifest: string;
+  html: string;
+  css: string;
+}) {
+  const { data } = await api.post('/templates', input);
+  return data;
+}
+
+export async function updateTemplate(
+  id: string,
+  input: { manifest: string; html: string; css: string }
+) {
+  const { data } = await api.put(`/templates/${id}`, input);
+  return data;
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  await api.delete(`/templates/${id}`);
+}
+
 // --- Images ---
 
 export async function fetchImages(): Promise<ImageListResponse> {

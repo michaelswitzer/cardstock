@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useGames } from '../hooks/useGames';
 import { useDecks } from '../hooks/useDecks';
@@ -45,6 +45,7 @@ export default function Sidebar() {
   const gameMatch = location.pathname.match(/^\/games\/([^/]+)/);
   const activeGameId = gameMatch?.[1];
   const { data: games } = useGames();
+  const navigate = useNavigate();
   const { data: templateData } = useQuery({
     queryKey: ['templates'],
     queryFn: fetchTemplates,
@@ -90,6 +91,13 @@ export default function Sidebar() {
       <div className="sidebar-section">
         <div className="sidebar-section-header">
           <NavLink to="/templates" className="sidebar-section-link"><h3>{'\u{2727}'} Templates</h3></NavLink>
+          <button
+            className="sidebar-add-btn"
+            onClick={() => navigate('/templates/new')}
+            title="New Template"
+          >
+            +
+          </button>
         </div>
         {templates.map((t) => (
           <NavLink

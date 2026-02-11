@@ -4,10 +4,7 @@ import { fileURLToPath } from 'url';
 import type { CardData, CardTemplate, FieldMapping } from '@cardmaker/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TEMPLATES_DIR = path.resolve(__dirname, '..', '..', 'templates');
-
-// In-memory cache for template files (keyed by template ID)
-const templateCache = new Map<string, { html: string; css: string }>();
+export const TEMPLATES_DIR = path.resolve(__dirname, '..', '..', 'templates');
 
 export async function listTemplates(): Promise<CardTemplate[]> {
   const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true });
@@ -34,17 +31,12 @@ export async function getTemplate(id: string): Promise<CardTemplate> {
 }
 
 async function loadTemplatePair(id: string): Promise<{ html: string; css: string }> {
-  const cached = templateCache.get(id);
-  if (cached) return cached;
-
   const [html, css] = await Promise.all([
     fs.readFile(path.join(TEMPLATES_DIR, id, 'template.html'), 'utf-8'),
     fs.readFile(path.join(TEMPLATES_DIR, id, 'template.css'), 'utf-8'),
   ]);
 
-  const pair = { html, css };
-  templateCache.set(id, pair);
-  return pair;
+  return { html, css };
 }
 
 export async function loadTemplateHTML(id: string): Promise<string> {

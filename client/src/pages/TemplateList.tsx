@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTemplates } from '../api/client';
+import { useDeleteTemplate } from '../hooks/useTemplates';
 
 export default function TemplateList() {
   const { data, isLoading } = useQuery({
@@ -8,11 +9,23 @@ export default function TemplateList() {
     queryFn: fetchTemplates,
   });
   const navigate = useNavigate();
+  const deleteMutation = useDeleteTemplate();
   const templates = data?.templates ?? [];
+
+  const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    if (!confirm(`Delete template "${name}"? This cannot be undone.`)) return;
+    await deleteMutation.mutateAsync(id);
+  };
 
   return (
     <div>
-      <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-5)' }}>Templates</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-5)' }}>
+        <h1 style={{ fontSize: 26, flex: 1 }}>Templates</h1>
+        <button className="primary" onClick={() => navigate('/templates/new')}>
+          New Template
+        </button>
+      </div>
 
       {isLoading && (
         <p style={{ color: 'var(--text-muted)' }}>Loading templates...</p>
@@ -41,13 +54,32 @@ export default function TemplateList() {
                 {t.fields.length} fields, {t.imageSlots.length} image slots
               </div>
             </div>
+            <div style={{ display: 'flex', gap: 'var(--sp-2)', flexShrink: 0 }}>
+              <button
+                className="secondary"
+                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/templates/${t.id}?edit=1`);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                className="danger"
+                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                onClick={(e) => handleDelete(e, t.id, t.name)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
       {templates.length === 0 && !isLoading && (
         <p style={{ color: 'var(--text-muted)' }}>
-          No templates found. Add template directories to server/templates/.
+          No templates found. Click "New Template" to create one.
         </p>
       )}
     </div>
