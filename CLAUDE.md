@@ -30,7 +30,7 @@ taskkill //PID <pid> //F    # Use //PID not /PID in Git Bash on Windows
 
 **Server auto-reloads** when run via `tsx watch` (the `npm run dev -w server` script), but when started directly with `npx tsx src/index.ts` it does not. After changing server code, restart the server process manually.
 
-**Auto-restart rule:** Whenever you make changes to server code or templates, automatically restart the server (kill the old process, start a new one) without waiting for the user to ask. Template HTML/CSS is cached in memory, so template changes also require a restart.
+**Auto-restart rule:** Whenever you make changes to server code, automatically restart the server (kill the old process, start a new one) without waiting for the user to ask. Template HTML/CSS is read from disk on every render (no caching), so template changes take effect immediately without a server restart.
 
 ## Architecture
 
