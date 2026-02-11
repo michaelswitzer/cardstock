@@ -57,7 +57,7 @@ export default function Sidebar() {
     <nav className="sidebar">
       <NavLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="sidebar-title">
-          Cardstock <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
+          <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span> Cardstock
         </div>
       </NavLink>
 

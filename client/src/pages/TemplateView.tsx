@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchTemplate, renderPreview } from '../api/client';
+import { fetchTemplate, fetchImages, renderPreview } from '../api/client';
 import { useCreateTemplate, useUpdateTemplate, useDeleteTemplate } from '../hooks/useTemplates';
+import { useGames } from '../hooks/useGames';
 import type { CardData, FieldMapping, TemplateField, ImageSlot } from '@cardmaker/shared';
 
 type TabName = 'manifest' | 'html' | 'css' | 'preview';
@@ -47,8 +48,14 @@ export default function TemplateView() {
     enabled: !!templateId && !isCreateMode,
   });
 
-  // No game context in template preview — image slots show empty dropdown
-  const imageData = undefined as { images: string[] } | undefined;
+  // Game selector for image slots in preview
+  const [previewGameId, setPreviewGameId] = useState<string>('');
+  const { data: gamesList } = useGames();
+  const { data: imageData } = useQuery({
+    queryKey: ['images', previewGameId],
+    queryFn: () => fetchImages(previewGameId),
+    enabled: !!previewGameId,
+  });
 
   // Preview state
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
@@ -100,7 +107,7 @@ export default function TemplateView() {
       cardData[s.name] = fieldValues[s.name] ?? '';
     }
 
-    renderPreview(templateId, cardData, mapping)
+    renderPreview(templateId, cardData, mapping, previewGameId || undefined)
       .then((dataUrl) => {
         if (previewKey.current === key) {
           setPreviewUrl(dataUrl);
@@ -114,7 +121,7 @@ export default function TemplateView() {
           setLoadingPreview(false);
         }
       });
-  }, [activeTab, fieldValues, templateId, data?.template, isCreateMode]);
+  }, [activeTab, fieldValues, templateId, data?.template, isCreateMode, previewGameId]);
 
   const tabs: { key: TabName; label: string }[] = [
     { key: 'manifest', label: 'Manifest' },
@@ -364,6 +371,23 @@ export default function TemplateView() {
                 )}
               </div>
             ))}
+            {data.template.imageSlots.length > 0 && (
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
+                  Load artwork from
+                </label>
+                <select
+                  value={previewGameId}
+                  onChange={(e) => setPreviewGameId(e.target.value)}
+                  style={{ width: '100%' }}
+                >
+                  <option value="">Select a game...</option>
+                  {gamesList?.map((g) => (
+                    <option key={g.id} value={g.id}>{g.title}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             {data.template.imageSlots.map((s: ImageSlot) => (
               <div key={s.name}>
                 <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
@@ -375,9 +399,12 @@ export default function TemplateView() {
                   style={{ width: '100%' }}
                 >
                   <option value="">None</option>
-                  {imageData?.images.map((img) => (
-                    <option key={img} value={img}>{img}</option>
-                  ))}
+                  {imageData?.images
+                    .filter((img) => img.startsWith('cardart/'))
+                    .map((img) => {
+                      const filename = img.split('/').pop()!;
+                      return <option key={img} value={filename}>{filename}</option>;
+                    })}
                 </select>
               </div>
             ))}
