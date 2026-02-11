@@ -10,30 +10,39 @@ import { buildCardPage } from '../services/templateEngine.js';
 import { renderCardToPng } from '../services/renderer.js';
 import { composePdf } from '../services/pdfComposer.js';
 import { composeTtsSpriteSheet } from '../services/ttsExporter.js';
-import { getGame, listDecks } from '../services/dataStore.js';
+import { getGame, getGameSlug, listDecks, GAMES_DIR } from '../services/dataStore.js';
 import { buildTabCsvUrl, fetchSheetData } from '../services/googleSheets.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = path.resolve(__dirname, '..', '..', '..', 'output');
-const ARTWORK_DIR = path.resolve(__dirname, '..', '..', '..', 'artwork');
-const CARDBACK_DIR = path.resolve(__dirname, '..', '..', '..', 'artwork', 'cardback');
 
 export const exportRouter = Router();
 
 // In-memory job store
 const jobs = new Map<string, ExportJob>();
 
+function artworkUrl(gameId: string): string {
+  const slug = getGameSlug(gameId);
+  return `http://localhost:${SERVER_PORT}/games/${slug ?? '_none'}`;
+}
+
+function cardbackDir(gameId: string): string {
+  const slug = getGameSlug(gameId);
+  return path.join(GAMES_DIR, slug ?? '_none', 'artwork', 'cardback');
+}
+
 /**
  * POST /api/export
  * Starts an async export job.
- * Body: { templateId, cards, mapping, options }
+ * Body: { templateId, cards, mapping, options, gameId }
  */
 exportRouter.post('/', async (req, res) => {
-  const { templateId, cards, mapping, options } = req.body as {
+  const { templateId, cards, mapping, options, gameId } = req.body as {
     templateId: string;
     cards: CardData[];
     mapping: FieldMapping;
     options: ExportOptions;
+    gameId: string;
   };
 
   const selectedCards = options.selectedCards.length > 0
@@ -54,7 +63,7 @@ exportRouter.post('/', async (req, res) => {
   res.json({ jobId });
 
   // Run export asynchronously
-  runExport(jobId, templateId, selectedCards, mapping, options).catch((err) => {
+  runExport(jobId, templateId, selectedCards, mapping, options, gameId).catch((err) => {
     const j = jobs.get(jobId);
     if (j) {
       j.status = 'error';
@@ -128,8 +137,8 @@ exportRouter.get('/:jobId', (req, res) => {
   res.json(job);
 });
 
-async function renderCardBack(cardBackImage: string): Promise<Buffer> {
-  const imagePath = path.join(CARDBACK_DIR, cardBackImage);
+async function renderCardBack(gameCardbackDir: string, cardBackImage: string): Promise<Buffer> {
+  const imagePath = path.join(gameCardbackDir, cardBackImage);
   return sharp(imagePath)
     .resize(CARD_WIDTH_PX, CARD_HEIGHT_PX, { fit: 'cover' })
     .withMetadata({ density: TARGET_DPI })
@@ -142,14 +151,16 @@ async function runExport(
   templateId: string,
   cards: CardData[],
   mapping: FieldMapping,
-  options: ExportOptions
+  options: ExportOptions,
+  gameId: string
 ) {
   const job = jobs.get(jobId)!;
   job.status = 'processing';
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
 
-  const artworkBaseUrl = `http://localhost:${SERVER_PORT}/artwork`;
+  const artworkBaseUrl = artworkUrl(gameId);
+  const gameCardbackDir = cardbackDir(gameId);
 
   // Render all cards to PNG
   const pngs: Buffer[] = [];
@@ -164,7 +175,7 @@ async function runExport(
   // Render card back if requested
   let cardBackBuffer: Buffer | undefined;
   if (options.includeCardBack && options.cardBackImage) {
-    cardBackBuffer = await renderCardBack(options.cardBackImage);
+    cardBackBuffer = await renderCardBack(gameCardbackDir, options.cardBackImage);
   }
 
   const timestamp = Date.now();
@@ -222,7 +233,8 @@ async function runGameExport(
   const gameDir = path.join(OUTPUT_DIR, `${safeTitle}-${timestamp}`);
   await fs.mkdir(gameDir, { recursive: true });
 
-  const artworkBaseUrl = `http://localhost:${SERVER_PORT}/artwork`;
+  const artworkBaseUrl = artworkUrl(game.id);
+  const gameCardbackDir = cardbackDir(game.id);
 
   // First pass: fetch all deck data to get total card count
   const deckData: { deck: typeof decks[0]; cards: CardData[] }[] = [];
@@ -254,7 +266,7 @@ async function runGameExport(
     // Render card back if present
     let cardBackBuffer: Buffer | undefined;
     if (deck.cardBackImage) {
-      cardBackBuffer = await renderCardBack(deck.cardBackImage);
+      cardBackBuffer = await renderCardBack(gameCardbackDir, deck.cardBackImage);
     }
 
     if (options.format === 'png') {

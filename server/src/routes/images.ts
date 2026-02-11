@@ -1,37 +1,45 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import sharp from 'sharp';
+import { getGameSlug, GAMES_DIR } from '../services/dataStore.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ARTWORK_DIR = path.resolve(__dirname, '..', '..', '..', 'artwork');
-const CARDBACK_DIR = path.resolve(__dirname, '..', '..', '..', 'artwork', 'cardback');
+export const imagesRouter = Router({ mergeParams: true });
 
-export const imagesRouter = Router();
+const IMAGE_RE = /\.(png|jpe?g|gif|svg|webp)$/i;
+
+function resolveGameDir(gameId: string): string | null {
+  const slug = getGameSlug(gameId);
+  if (!slug) return null;
+  return path.join(GAMES_DIR, slug);
+}
 
 /**
- * GET /api/images
- * Lists all image files in the artwork directory, recursively including subdirectories.
+ * GET /api/games/:gameId/images
+ * Lists all images recursively in the game's artwork/ directory.
  */
-imagesRouter.get('/', async (_req, res, next) => {
+imagesRouter.get('/', async (req: Request<{ gameId: string }>, res, next) => {
   try {
-    await fs.mkdir(ARTWORK_DIR, { recursive: true });
-    const images: string[] = [];
+    const gameDir = resolveGameDir(req.params.gameId);
+    if (!gameDir) { res.status(404).json({ error: 'Game not found' }); return; }
 
+    const artworkDir = path.join(gameDir, 'artwork');
+    await fs.mkdir(artworkDir, { recursive: true });
+
+    const images: string[] = [];
     async function walk(dir: string) {
       const entries = await fs.readdir(dir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
           await walk(fullPath);
-        } else if (/\.(png|jpe?g|gif|svg|webp)$/i.test(entry.name)) {
-          images.push(path.relative(ARTWORK_DIR, fullPath).replace(/\\/g, '/'));
+        } else if (IMAGE_RE.test(entry.name)) {
+          images.push(path.relative(artworkDir, fullPath).replace(/\\/g, '/'));
         }
       }
     }
 
-    await walk(ARTWORK_DIR);
+    await walk(artworkDir);
     res.json({ images });
   } catch (err) {
     next(err);
@@ -39,16 +47,18 @@ imagesRouter.get('/', async (_req, res, next) => {
 });
 
 /**
- * GET /api/images/cardbacks
- * Lists all image files in the cardback directory.
+ * GET /api/games/:gameId/images/covers
+ * Lists image files at the root of the game folder (not in subdirectories).
  */
-imagesRouter.get('/cardbacks', async (_req, res, next) => {
+imagesRouter.get('/covers', async (req: Request<{ gameId: string }>, res, next) => {
   try {
-    await fs.mkdir(CARDBACK_DIR, { recursive: true });
+    const gameDir = resolveGameDir(req.params.gameId);
+    if (!gameDir) { res.status(404).json({ error: 'Game not found' }); return; }
+
     const images: string[] = [];
-    const entries = await fs.readdir(CARDBACK_DIR, { withFileTypes: true });
+    const entries = await fs.readdir(gameDir, { withFileTypes: true });
     for (const entry of entries) {
-      if (!entry.isDirectory() && /\.(png|jpe?g|gif|svg|webp)$/i.test(entry.name)) {
+      if (!entry.isDirectory() && IMAGE_RE.test(entry.name)) {
         images.push(entry.name);
       }
     }
@@ -59,23 +69,51 @@ imagesRouter.get('/cardbacks', async (_req, res, next) => {
 });
 
 /**
- * GET /api/images/thumb/*
- * Serves a resized thumbnail of an artwork image.
+ * GET /api/games/:gameId/images/cardbacks
+ * Lists image files in the game's artwork/cardback/ directory.
+ */
+imagesRouter.get('/cardbacks', async (req: Request<{ gameId: string }>, res, next) => {
+  try {
+    const gameDir = resolveGameDir(req.params.gameId);
+    if (!gameDir) { res.status(404).json({ error: 'Game not found' }); return; }
+
+    const cardbackDir = path.join(gameDir, 'artwork', 'cardback');
+    await fs.mkdir(cardbackDir, { recursive: true });
+
+    const images: string[] = [];
+    const entries = await fs.readdir(cardbackDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() && IMAGE_RE.test(entry.name)) {
+        images.push(entry.name);
+      }
+    }
+    res.json({ images });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/games/:gameId/images/thumb/*
+ * Serves a resized thumbnail of an image within the game folder.
  * Query params: w (width, default 150), h (height, default 210)
- * Path is relative to artwork dir, e.g. /api/images/thumb/cardback/mycard.png
+ * Path is relative to game dir, e.g. /api/games/:id/images/thumb/artwork/card.png
  */
 const thumbCache = new Map<string, Buffer>();
 
-imagesRouter.get('/thumb/*', async (req, res, next) => {
+imagesRouter.get('/thumb/*', async (req: Request<{ gameId: string; 0: string }>, res, next) => {
   try {
+    const gameDir = resolveGameDir(req.params.gameId);
+    if (!gameDir) { res.status(404).json({ error: 'Game not found' }); return; }
+
     const relPath = req.params[0];
     const w = Math.min(Number(req.query.w) || 150, 400);
     const h = Math.min(Number(req.query.h) || 210, 560);
-    const cacheKey = `${relPath}:${w}x${h}`;
+    const cacheKey = `${req.params.gameId}:${relPath}:${w}x${h}`;
 
     let buffer = thumbCache.get(cacheKey);
     if (!buffer) {
-      const fullPath = path.join(ARTWORK_DIR, relPath);
+      const fullPath = path.join(gameDir, relPath);
       buffer = await sharp(fullPath)
         .resize(w, h, { fit: 'inside' })
         .png()

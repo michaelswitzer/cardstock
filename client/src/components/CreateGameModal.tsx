@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useCreateGame } from '../hooks/useGames';
-import { fetchImages } from '../api/client';
 
 interface CreateGameModalProps {
   open: boolean;
@@ -12,15 +10,9 @@ interface CreateGameModalProps {
 export default function CreateGameModal({ open, onClose }: CreateGameModalProps) {
   const navigate = useNavigate();
   const createGame = useCreateGame();
-  const { data: imageData } = useQuery({
-    queryKey: ['images'],
-    queryFn: fetchImages,
-    enabled: open,
-  });
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [coverImage, setCoverImage] = useState('');
   const [sheetUrl, setSheetUrl] = useState('');
   const [error, setError] = useState('');
 
@@ -36,12 +28,10 @@ export default function CreateGameModal({ open, onClose }: CreateGameModalProps)
       const game = await createGame.mutateAsync({
         title: title.trim(),
         description: description.trim() || undefined,
-        coverImage: coverImage || undefined,
         sheetUrl: sheetUrl.trim(),
       });
       setTitle('');
       setDescription('');
-      setCoverImage('');
       setSheetUrl('');
       onClose();
       navigate(`/games/${game.id}`);
@@ -93,22 +83,6 @@ export default function CreateGameModal({ open, onClose }: CreateGameModalProps)
               rows={2}
               style={{ width: '100%' }}
             />
-          </div>
-
-          <div>
-            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-              Cover Image
-            </label>
-            <select
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              style={{ width: '100%' }}
-            >
-              <option value="">None</option>
-              {imageData?.images.map((img) => (
-                <option key={img} value={img}>{img}</option>
-              ))}
-            </select>
           </div>
 
           <div>

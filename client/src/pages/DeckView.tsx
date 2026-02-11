@@ -64,7 +64,7 @@ export default function DeckView() {
     const key = ++renderKey.current;
     setLoading(true);
 
-    renderPreviewBatch(deck.templateId, rows, deck.mapping)
+    renderPreviewBatch(deck.templateId, rows, deck.mapping, gameId)
       .then((dataUrls) => {
         if (renderKey.current === key) {
           setDeckCardImages(deckId, dataUrls, inputsKey);
@@ -113,7 +113,7 @@ export default function DeckView() {
   // Prepend card back as the first card if one is set
   const hasCardBack = !!deck.cardBackImage;
   const displayImages = hasCardBack && cardImages.length > 0
-    ? [`/artwork/cardback/${deck.cardBackImage}`, ...cardImages]
+    ? [`/api/games/${gameId}/images/thumb/artwork/cardback/${deck.cardBackImage}?w=250&h=350`, ...cardImages]
     : cardImages;
   const cardLabels = hasCardBack && cardImages.length > 0
     ? ['Card Back', ...baseLabels]
@@ -176,6 +176,7 @@ export default function DeckView() {
           templateId={deck.templateId}
           mapping={deck.mapping}
           cardBackImage={deck.cardBackImage}
+          gameId={gameId}
         />
       )}
 

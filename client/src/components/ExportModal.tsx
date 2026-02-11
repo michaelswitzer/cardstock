@@ -74,7 +74,7 @@ export default function ExportModal({
           ttsColumns,
           includeCardBack: includeCardBack && !!cardBackImage,
           cardBackImage: includeCardBack ? cardBackImage : undefined,
-        });
+        }, gameId!);
       } else {
         return;
       }

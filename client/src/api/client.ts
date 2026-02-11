@@ -60,15 +60,20 @@ export async function deleteTemplate(id: string): Promise<void> {
   await api.delete(`/templates/${id}`);
 }
 
-// --- Images ---
+// --- Images (game-scoped) ---
 
-export async function fetchImages(): Promise<ImageListResponse> {
-  const { data } = await api.get('/images');
+export async function fetchImages(gameId: string): Promise<ImageListResponse> {
+  const { data } = await api.get(`/games/${gameId}/images`);
   return data;
 }
 
-export async function fetchCardbacks(): Promise<ImageListResponse> {
-  const { data } = await api.get('/images/cardbacks');
+export async function fetchCovers(gameId: string): Promise<ImageListResponse> {
+  const { data } = await api.get(`/games/${gameId}/images/covers`);
+  return data;
+}
+
+export async function fetchCardbacks(gameId: string): Promise<ImageListResponse> {
+  const { data } = await api.get(`/games/${gameId}/images/cardbacks`);
   return data;
 }
 
@@ -77,12 +82,14 @@ export async function fetchCardbacks(): Promise<ImageListResponse> {
 export async function renderPreview(
   templateId: string,
   cardData: CardData,
-  mapping: FieldMapping
+  mapping: FieldMapping,
+  gameId?: string
 ): Promise<string> {
   const { data } = await api.post('/cards/preview', {
     templateId,
     cardData,
     mapping,
+    gameId,
   });
   return data.dataUrl;
 }
@@ -90,12 +97,14 @@ export async function renderPreview(
 export async function renderPreviewBatch(
   templateId: string,
   cards: CardData[],
-  mapping: FieldMapping
+  mapping: FieldMapping,
+  gameId?: string
 ): Promise<string[]> {
   const { data } = await api.post('/cards/preview-batch', {
     templateId,
     cards,
     mapping,
+    gameId,
   });
   return data.dataUrls;
 }
@@ -106,13 +115,15 @@ export async function startExport(
   templateId: string,
   cards: CardData[],
   mapping: FieldMapping,
-  options: ExportOptions
+  options: ExportOptions,
+  gameId: string
 ): Promise<string> {
   const { data } = await api.post('/export', {
     templateId,
     cards,
     mapping,
     options,
+    gameId,
   });
   return data.jobId;
 }
@@ -140,7 +151,6 @@ export async function fetchGames(): Promise<{ games: Game[] }> {
 export async function createGame(input: {
   title: string;
   description?: string;
-  coverImage?: string;
   sheetUrl: string;
 }): Promise<Game> {
   const { data } = await api.post('/games', input);

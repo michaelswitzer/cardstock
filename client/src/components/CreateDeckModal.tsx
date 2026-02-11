@@ -31,8 +31,8 @@ export default function CreateDeckModal({
     enabled: open,
   });
   const { data: cardbackData } = useQuery({
-    queryKey: ['cardbacks'],
-    queryFn: fetchCardbacks,
+    queryKey: ['cardbacks', gameId],
+    queryFn: () => fetchCardbacks(gameId),
     enabled: open,
   });
 
@@ -123,7 +123,7 @@ export default function CreateDeckModal({
     const key = ++previewKey.current;
     setLoadingPreview(true);
     const cardIndex = Math.min(previewIndex, sheetRows.length - 1);
-    renderPreview(templateId, sheetRows[cardIndex], mapping)
+    renderPreview(templateId, sheetRows[cardIndex], mapping, gameId)
       .then((dataUrl) => {
         if (previewKey.current === key) {
           setPreviewUrl(dataUrl);

@@ -42,9 +42,9 @@ Types and constants consumed by both server and client. Exports from `types.ts` 
 ### Server (`server/src/`)
 Express API on port 3001. Routes follow a pattern: each file in `routes/` exports a Router, registered in `index.ts`. Services are pure async functions (no classes).
 
-**Data persistence:** Games and decks are stored in `.cardmaker-data.json` at project root. CRUD operations via `services/dataStore.ts`. On startup, if `.cardmaker-defaults.json` (old format) exists and `.cardmaker-data.json` does not, auto-migration runs.
+**Data persistence:** Each game has its own folder under `games/<slug>/` containing a `game.json` file with the game record and embedded decks array. CRUD operations via `services/dataStore.ts`. In-memory indexes (`gameIndex`, `deckIndex`) built on startup for fast lookups. On startup, legacy `.cardmaker-defaults.json` or `.cardmaker-data.json` files are auto-migrated to per-game folders.
 
-**Rendering pipeline:** Template HTML/CSS loaded from `server/templates/<id>/` → placeholders hydrated (`{{field}}` for text, `{{image:slot}}` for artwork URLs) → Puppeteer screenshots the page → sharp adds DPI metadata for export.
+**Rendering pipeline:** Template HTML/CSS loaded from `server/templates/<id>/` → placeholders hydrated (`{{field}}` for text, `{{image:slot}}` for artwork URLs, `{icon:name}` for icons) → Puppeteer screenshots the page → sharp adds DPI metadata for export.
 
 **Key rendering constants:** 100 CSS px = 1 inch. Cards are 250×350 CSS px. Puppeteer renders at `deviceScaleFactor: 3` producing 750×1050 px output at 300 DPI.
 
@@ -63,10 +63,10 @@ Express API on port 3001. Routes follow a pattern: each file in `routes/` export
 - `/api/templates` — list/get templates
 - `/api/cards/preview`, `/api/cards/preview-batch` — render card previews
 - `/api/export` — single deck export, `/api/export/game` — full game export
-- `/api/images` — list artwork images
+- `/api/games/:gameId/images` — list artwork images, covers, cardbacks, thumbnails
 
 ### Client (`client/src/`)
-React 19 + Vite. Vite proxies `/api`, `/artwork`, `/output` to `localhost:3001`.
+React 19 + Vite. Vite proxies `/api` and `/output` to `localhost:3001`.
 
 **Layout:** Sidebar + main content area. React Router handles navigation:
 - `/` — GamesInventory (tile grid of games)
@@ -86,11 +86,32 @@ React 19 + Vite. Vite proxies `/api`, `/artwork`, `/output` to `localhost:3001`.
 3. DeckView fetches tab data as CSV, renders card previews via Puppeteer
 4. Export: renders all cards to PNG buffers, composes into format (individual PNGs, PDF with crop marks, or TTS sprite sheet). Card backs exported as separate files.
 
+## Per-Game Folder Layout
+
+Each game gets its own folder under `games/<slug>/`:
+
+```
+games/
+└── my-card-game/           # Slug auto-generated from game title
+    ├── game.json            # Game record + embedded decks array
+    ├── cover.png            # Cover images at folder root (any image file)
+    └── artwork/
+        ├── cardart/         # Card art referenced in Google Sheets (e.g. C001.png)
+        ├── cardback/        # Card back images for decks
+        └── icons/           # Icons used with {icon:name} in templates
+```
+
+**Image placement:**
+- **Card art** → `games/<slug>/artwork/cardart/` — filename in the sheet's Image column (e.g. `C001.png`)
+- **Card backs** → `games/<slug>/artwork/cardback/` — selected per-deck in the deck editor
+- **Icons** → `games/<slug>/artwork/icons/` — referenced as `{icon:name}` in template HTML (resolved to `icons/<name>.png`)
+- **Cover images** → `games/<slug>/` root — any image file at the game folder root can be set as cover
+
+The `games/` directory is served statically at `/games` (used internally by Puppeteer for rendering). The client accesses images only through the API (`/api/games/:gameId/images/...`).
+
 ## Conventions
 
-- Artwork images go in `artwork/` at project root, served statically at `/artwork`
 - Export output goes to `output/` at project root, served at `/output`
-- Both `artwork/` content and `output/` are gitignored
-- `.cardmaker-data.json` stores games/decks, gitignored
+- `games/` and `output/` are gitignored
 - Server routes use `next(err)` pattern for error handling with centralized `errorHandler` middleware
 - `PROJECT_ROOT` is resolved relative to `__dirname` in server files (ESM with `fileURLToPath`)

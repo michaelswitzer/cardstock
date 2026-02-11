@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchTemplate, fetchImages, renderPreview } from '../api/client';
+import { fetchTemplate, renderPreview } from '../api/client';
 import { useCreateTemplate, useUpdateTemplate, useDeleteTemplate } from '../hooks/useTemplates';
 import type { CardData, FieldMapping, TemplateField, ImageSlot } from '@cardmaker/shared';
 
@@ -47,11 +47,8 @@ export default function TemplateView() {
     enabled: !!templateId && !isCreateMode,
   });
 
-  const { data: imageData } = useQuery({
-    queryKey: ['images'],
-    queryFn: fetchImages,
-    enabled: activeTab === 'preview',
-  });
+  // No game context in template preview — image slots show empty dropdown
+  const imageData = undefined as { images: string[] } | undefined;
 
   // Preview state
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});

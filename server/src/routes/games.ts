@@ -7,8 +7,12 @@ import {
   deleteGame,
   listDecks,
 } from '../services/dataStore.js';
+import { imagesRouter } from './images.js';
 
 export const gamesRouter = Router();
+
+// Mount game-scoped image routes
+gamesRouter.use('/:gameId/images', imagesRouter);
 
 /** GET /api/games — list all games */
 gamesRouter.get('/', async (_req, res, next) => {
@@ -23,12 +27,12 @@ gamesRouter.get('/', async (_req, res, next) => {
 /** POST /api/games — create a game */
 gamesRouter.post('/', async (req, res, next) => {
   try {
-    const { title, description, coverImage, sheetUrl } = req.body;
+    const { title, description, sheetUrl } = req.body;
     if (!title || !sheetUrl) {
       res.status(400).json({ error: 'title and sheetUrl are required' });
       return;
     }
-    const game = await createGame({ title, description, coverImage, sheetUrl });
+    const game = await createGame({ title, description, sheetUrl });
     res.status(201).json(game);
   } catch (err) {
     next(err);

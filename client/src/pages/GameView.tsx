@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useGame, useDeleteGame, useUpdateGame } from '../hooks/useGames';
 import { useDeleteDeck } from '../hooks/useDecks';
-import { fetchImages, fetchTemplates } from '../api/client';
+import { fetchCovers, fetchTemplates } from '../api/client';
 import CreateDeckModal from '../components/CreateDeckModal';
 import ExportModal from '../components/ExportModal';
 import type { Deck } from '@cardmaker/shared';
@@ -25,9 +25,9 @@ export default function GameView() {
   const [editSheetUrl, setEditSheetUrl] = useState('');
   const [editCoverImage, setEditCoverImage] = useState('');
   const { data: imageData } = useQuery({
-    queryKey: ['images'],
-    queryFn: fetchImages,
-    enabled: editing,
+    queryKey: ['covers', id],
+    queryFn: () => fetchCovers(id!),
+    enabled: editing && !!id,
   });
   const { data: templateData } = useQuery({
     queryKey: ['templates'],
@@ -125,7 +125,7 @@ export default function GameView() {
             <div style={{ display: 'flex', gap: 'var(--sp-4)', alignItems: 'center' }}>
               {game.coverImage && (
                 <img
-                  src={`/api/images/thumb/${game.coverImage}?w=120&h=120`}
+                  src={`/api/games/${game.id}/images/thumb/${game.coverImage}?w=120&h=120`}
                   alt={game.title}
                   style={{
                     borderRadius: 'var(--radius)',
@@ -162,7 +162,7 @@ export default function GameView() {
       {/* Deck list */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-3)' }}>
         <h2>Decks</h2>
-        <button className="primary" onClick={() => { setEditingDeck(null); setShowCreateDeck(true); }}>
+        <button className="secondary" onClick={() => { setEditingDeck(null); setShowCreateDeck(true); }}>
           New Deck
         </button>
       </div>
@@ -188,7 +188,7 @@ export default function GameView() {
             >
               {deck.cardBackImage && (
                 <img
-                  src={`/api/images/thumb/cardback/${deck.cardBackImage}?w=72&h=100`}
+                  src={`/api/games/${game.id}/images/thumb/artwork/cardback/${deck.cardBackImage}?w=72&h=100`}
                   alt="Card back"
                   style={{
                     width: 36,

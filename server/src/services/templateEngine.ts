@@ -74,14 +74,14 @@ export function hydrateTemplate(
     const sheetColumn = mapping[slotName];
     if (sheetColumn && cardData[sheetColumn]) {
       const filename = cardData[sheetColumn];
-      return `${artworkBaseUrl}/${filename.split('/').map(encodeURIComponent).join('/')}`;
+      return `${artworkBaseUrl}/artwork/cardart/${filename.split('/').map(encodeURIComponent).join('/')}`;
     }
     return '';
   });
 
   // Replace {icon:name} with inline images from resources/
   result = result.replace(/\{icon:(\w+)\}/g, (_match, name: string) => {
-    return `<img src="${artworkBaseUrl}/icons/${encodeURIComponent(name)}.png" class="inline-icon" />`;
+    return `<img src="${artworkBaseUrl}/artwork/icons/${encodeURIComponent(name)}.png" class="inline-icon" />`;
   });
 
   // Convert markdown-style formatting to HTML tags

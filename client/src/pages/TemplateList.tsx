@@ -22,7 +22,7 @@ export default function TemplateList() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-5)' }}>
         <h1 style={{ fontSize: 26, flex: 1 }}>Templates</h1>
-        <button className="primary" onClick={() => navigate('/templates/new')}>
+        <button className="secondary" onClick={() => navigate('/templates/new')}>
           New Template
         </button>
       </div>

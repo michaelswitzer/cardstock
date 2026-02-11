@@ -15,7 +15,7 @@ client/dist/
 output/
 
 # User content
-artwork/
+games/
 
 # Templates (except example)
 server/templates/*

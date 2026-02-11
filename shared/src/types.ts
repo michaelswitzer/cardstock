@@ -82,10 +82,11 @@ export interface SheetTab {
 export interface Game {
   id: string;
   title: string;
+  slug: string;
   description?: string;
   coverImage?: string;
   sheetUrl: string;
-  deckIds: string[];
+  deckCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -104,10 +105,45 @@ export interface Deck {
   updatedAt: string;
 }
 
-/** Persisted application data */
+/** On-disk deck format (gameId is implicit from file location) */
+export interface StoredDeck {
+  id: string;
+  name: string;
+  sheetTabGid: string;
+  sheetTabName: string;
+  templateId: string;
+  mapping: FieldMapping;
+  cardBackImage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** On-disk game.json format */
+export interface GameFile {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  coverImage?: string;
+  sheetUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  decks: StoredDeck[];
+}
+
+/** Persisted application data (legacy central file, used for migration) */
 export interface AppData {
   version: number;
-  games: Game[];
+  games: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    coverImage?: string;
+    sheetUrl: string;
+    deckIds: string[];
+    createdAt: string;
+    updatedAt: string;
+  }>;
   decks: Deck[];
 }
 

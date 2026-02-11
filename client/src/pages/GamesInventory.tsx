@@ -42,7 +42,7 @@ export default function GamesInventory() {
           >
             {game.coverImage ? (
               <img
-                src={`/api/images/thumb/${game.coverImage}?w=300&h=200`}
+                src={`/api/games/${game.id}/images/thumb/${game.coverImage}?w=300&h=200`}
                 alt={game.title}
                 className="game-tile-cover"
               />
@@ -64,7 +64,7 @@ export default function GamesInventory() {
             )}
             <div className="game-tile-title">{game.title}</div>
             <div className="game-tile-meta">
-              {game.deckIds.length} deck{game.deckIds.length !== 1 ? 's' : ''}
+              {game.deckCount} deck{game.deckCount !== 1 ? 's' : ''}
             </div>
             {game.description && (
               <div className="game-tile-meta">{game.description}</div>
