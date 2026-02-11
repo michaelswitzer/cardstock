@@ -20,7 +20,7 @@ cd server && npx tsx src/index.ts    # Server on port 3001
 cd client && npx vite                # Client on port 5173
 ```
 
-Verify the server is working by confirming it prints "CardMaker server running on http://localhost:3001". If it doesn't appear, check for stale processes.
+Verify the server is working by confirming it prints "Cardstock server running on http://localhost:3001". If it doesn't appear, check for stale processes.
 
 **Stale processes:** Previous dev sessions frequently leave orphaned node/vite processes holding ports 3001, 5173, or 5174. Before starting, check and kill them:
 ```bash
@@ -42,33 +42,55 @@ Types and constants consumed by both server and client. Exports from `types.ts` 
 ### Server (`server/src/`)
 Express API on port 3001. Routes follow a pattern: each file in `routes/` exports a Router, registered in `index.ts`. Services are pure async functions (no classes).
 
+**Data persistence:** Games and decks are stored in `.cardmaker-data.json` at project root. CRUD operations via `services/dataStore.ts`. On startup, if `.cardmaker-defaults.json` (old format) exists and `.cardmaker-data.json` does not, auto-migration runs.
+
 **Rendering pipeline:** Template HTML/CSS loaded from `server/templates/<id>/` → placeholders hydrated (`{{field}}` for text, `{{image:slot}}` for artwork URLs) → Puppeteer screenshots the page → sharp adds DPI metadata for export.
 
 **Key rendering constants:** 100 CSS px = 1 inch. Cards are 250×350 CSS px. Puppeteer renders at `deviceScaleFactor: 3` producing 750×1050 px output at 300 DPI.
 
-**Export is async:** `POST /api/export` returns a job ID immediately. The job runs in the background, client polls `GET /api/export/:jobId` for progress. Jobs are stored in an in-memory Map. Output goes to `output/` directory.
+**Sheet tab discovery:** `services/googleSheets.ts` has `discoverTabs(url)` which fetches the pubhtml page and parses embedded JS for tab names and gids.
+
+**Export is async:** `POST /api/export` returns a job ID immediately. The job runs in the background, client polls `GET /api/export/:jobId` for progress. `POST /api/export/game` exports all decks in a game to subfolders. Card backs are exported as separate files. Output goes to `output/` directory.
 
 **Templates** are filesystem-based in `server/templates/<id>/` with three files: `manifest.json` (fields, image slots, dimensions), `template.html` (with `{{placeholder}}` syntax), `template.css`.
+
+**API Routes:**
+- `/api/games` — CRUD for games (projects tied to a Google Sheet)
+- `/api/games/:gameId/decks` — list/create decks under a game
+- `/api/decks/:id` — get/update/delete individual decks
+- `/api/sheets/fetch` — fetch CSV data from a sheet tab
+- `/api/sheets/tabs` — discover tabs in a published Google Sheet
+- `/api/templates` — list/get templates
+- `/api/cards/preview`, `/api/cards/preview-batch` — render card previews
+- `/api/export` — single deck export, `/api/export/game` — full game export
+- `/api/images` — list artwork images
 
 ### Client (`client/src/`)
 React 19 + Vite. Vite proxies `/api`, `/artwork`, `/output` to `localhost:3001`.
 
-**4-step wizard flow:** DataSourcePage → TemplateEditorPage → CardPreviewPage → ExportPage. Navigation via React Router, step bar in WizardLayout.
+**Layout:** Sidebar + main content area. React Router handles navigation:
+- `/` — GamesInventory (tile grid of games)
+- `/games/:id` — GameView (game header, deck list, export all)
+- `/games/:id/decks/:deckId` — DeckView (card preview grid, refresh, export)
+- `/templates` — TemplateList (view template source)
 
-**State:** Zustand store (`stores/appStore.ts`) holds all wizard state as flat fields with action methods. React Query handles server data fetching and caching. API functions in `api/client.ts` mirror server routes.
+**State:** Zustand store (`stores/appStore.ts`) holds active game/deck IDs and a deck data cache (headers, rows, card images per deck). Server is the source of truth for games/decks (via React Query). API functions in `api/client.ts` mirror server routes.
 
-**Defaults:** User settings (sheet URL, template, field mappings) persist to `.cardmaker-defaults.json` at project root via `/api/defaults`. Pages auto-populate from defaults on load but don't auto-fetch.
+**Key concepts:**
+- **Game** — a project tied to a Google Sheets document (one URL, multiple tabs)
+- **Deck** — pairs a sheet tab + template + field mapping; belongs to a game
 
 ### Data Flow
-1. User provides Google Sheets URL → server fetches published CSV, parses with PapaParse → returns headers + rows
-2. User selects template, maps template fields to sheet columns
-3. Server hydrates template HTML with mapped data, Puppeteer renders screenshots
-4. Export: renders all cards to PNG buffers, then composes into format (individual PNGs, PDF with optional crop marks via pdf-lib, or TTS sprite sheet via sharp)
+1. User creates a Game with a Google Sheets URL → server discovers tabs via pubhtml parsing
+2. User creates Decks: selects a tab, template, and maps fields
+3. DeckView fetches tab data as CSV, renders card previews via Puppeteer
+4. Export: renders all cards to PNG buffers, composes into format (individual PNGs, PDF with crop marks, or TTS sprite sheet). Card backs exported as separate files.
 
 ## Conventions
 
 - Artwork images go in `artwork/` at project root, served statically at `/artwork`
 - Export output goes to `output/` at project root, served at `/output`
 - Both `artwork/` content and `output/` are gitignored
+- `.cardmaker-data.json` stores games/decks, gitignored
 - Server routes use `next(err)` pattern for error handling with centralized `errorHandler` middleware
 - `PROJECT_ROOT` is resolved relative to `__dirname` in server files (ESM with `fileURLToPath`)

@@ -53,6 +53,10 @@ Back on the main screen, all your cards will render with the mapped data.
 
 If your template has image slots, place artwork files in the `artwork/` folder at the project root. Your spreadsheet column should contain the filename (e.g. `goblin.png`). Subfolders work too (e.g. `creatures/goblin.png`).
 
+### Card Back Images
+
+Card back images go in `artwork/cardback/` at the project root. When creating or editing a deck, the card back dropdown lists all images from this folder. The card back is shown as the first card in the deck view and exported as a separate file alongside your cards.
+
 ### Inline Icons
 
 You can embed small icons directly in your card text using `{icon:name}` syntax. This works in any text field in your spreadsheet.
@@ -93,6 +97,7 @@ shared/     Types and constants shared between server and client
 server/     Express API, Puppeteer rendering, export services
 client/     React + Vite single-page UI
 artwork/    Card artwork images (gitignored, served at /artwork)
+  cardback/ Card back images (listed in card back dropdown)
 output/     Exported files (gitignored, served at /output)
 ```
 

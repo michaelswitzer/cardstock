@@ -1,24 +1,41 @@
 import { useState, useEffect, useRef } from 'react';
-import type { ExportJob, ExportFormat } from '@cardmaker/shared';
+import type { CardData, ExportJob, ExportFormat, FieldMapping } from '@cardmaker/shared';
 import { useAppStore } from '../stores/appStore';
-import { startExport, getExportJob } from '../api/client';
+import { startExport, startGameExport, getExportJob } from '../api/client';
 import ExportProgress from './ExportProgress';
 
 interface ExportModalProps {
   open: boolean;
   onClose: () => void;
+  // For deck-scoped export:
+  deckId?: string;
+  rows?: CardData[];
+  templateId?: string;
+  mapping?: FieldMapping;
+  cardBackImage?: string;
+  // For game-scoped export:
+  gameId?: string;
 }
 
-export default function ExportModal({ open, onClose }: ExportModalProps) {
-  const { rows, selectedTemplate, mapping, exportFormat, setExportFormat } =
-    useAppStore();
+export default function ExportModal({
+  open,
+  onClose,
+  deckId,
+  rows,
+  templateId,
+  mapping,
+  cardBackImage,
+  gameId,
+}: ExportModalProps) {
+  const { exportFormat, setExportFormat } = useAppStore();
 
   const [job, setJob] = useState<ExportJob | null>(null);
   const [exporting, setExporting] = useState(false);
   const [pdfPageSize, setPdfPageSize] = useState<'letter' | 'a4'>('letter');
   const [pdfCropMarks, setPdfCropMarks] = useState(true);
   const [ttsColumns, setTtsColumns] = useState(10);
-  const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const [includeCardBack, setIncludeCardBack] = useState(true);
+  const pollRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   useEffect(() => {
     return () => {
@@ -26,20 +43,41 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
     };
   }, []);
 
-  if (!open || !selectedTemplate) return null;
+  if (!open) return null;
+
+  const isDeckExport = !!deckId && !!rows && !!templateId && !!mapping;
+  const isGameExport = !!gameId;
+  const cardCount = rows?.length ?? 0;
+  const hasCardBack = isDeckExport ? !!cardBackImage : isGameExport;
 
   const handleExport = async () => {
     setExporting(true);
     setJob(null);
 
     try {
-      const jobId = await startExport(selectedTemplate.id, rows, mapping, {
-        format: exportFormat,
-        selectedCards: [],
-        pdfPageSize,
-        pdfCropMarks,
-        ttsColumns,
-      });
+      let jobId: string;
+
+      if (isGameExport) {
+        jobId = await startGameExport(gameId, {
+          format: exportFormat,
+          selectedCards: [],
+          pdfPageSize,
+          pdfCropMarks,
+          ttsColumns,
+        });
+      } else if (isDeckExport) {
+        jobId = await startExport(templateId, rows, mapping, {
+          format: exportFormat,
+          selectedCards: [],
+          pdfPageSize,
+          pdfCropMarks,
+          ttsColumns,
+          includeCardBack: includeCardBack && !!cardBackImage,
+          cardBackImage: includeCardBack ? cardBackImage : undefined,
+        });
+      } else {
+        return;
+      }
 
       pollRef.current = setInterval(async () => {
         const status = await getExportJob(jobId);
@@ -81,7 +119,9 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
         style={{ width: '100%', maxWidth: 560 }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0 }}>Export</h2>
+          <h2 style={{ margin: 0 }}>
+            {isGameExport ? 'Export All Decks' : 'Export'}
+          </h2>
           {!exporting && (
             <button
               className="secondary"
@@ -148,8 +188,21 @@ export default function ExportModal({ open, onClose }: ExportModalProps) {
           </label>
         )}
 
+        {hasCardBack && isDeckExport && (
+          <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+            <input
+              type="checkbox"
+              checked={includeCardBack}
+              onChange={(e) => setIncludeCardBack(e.target.checked)}
+            />
+            Include card back ({cardBackImage})
+          </label>
+        )}
+
         <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-          Exporting all {rows.length} cards
+          {isGameExport
+            ? 'Exporting all decks in this game'
+            : `Exporting all ${cardCount} cards`}
         </div>
 
         <button

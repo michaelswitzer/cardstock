@@ -1,87 +1,76 @@
 import { create } from 'zustand';
-import type {
-  CardData,
-  CardTemplate,
-  ExportFormat,
-  FieldMapping,
-} from '@cardmaker/shared';
+import type { CardData, ExportFormat } from '@cardmaker/shared';
 
-interface AppState {
-  // Step 1: Data Source
-  sheetUrl: string;
+interface DeckCache {
   headers: string[];
   rows: CardData[];
-
-  // Step 2: Template
-  selectedTemplate: CardTemplate | null;
-  mapping: FieldMapping;
-
-  // Step 3: Preview
   cardImages: string[];
   cardImagesKey: string;
-  selectedCards: number[];
+}
 
-  // Step 4: Export
+interface AppState {
+  activeGameId: string | null;
+  activeDeckId: string | null;
+  deckDataCache: Record<string, DeckCache>;
   exportFormat: ExportFormat;
 
   // Actions
-  setSheetUrl: (url: string) => void;
-  setSheetData: (headers: string[], rows: CardData[]) => void;
-  setTemplate: (template: CardTemplate) => void;
-  setCardImages: (images: string[], key?: string) => void;
-  setMapping: (mapping: FieldMapping) => void;
-  setFieldMapping: (templateField: string, sheetColumn: string) => void;
-  toggleCardSelection: (index: number) => void;
-  selectAllCards: () => void;
-  deselectAllCards: () => void;
+  setActiveGame: (gameId: string | null) => void;
+  setActiveDeck: (deckId: string | null) => void;
+  setDeckData: (deckId: string, headers: string[], rows: CardData[]) => void;
+  setDeckCardImages: (deckId: string, images: string[], key: string) => void;
+  clearDeckCache: (deckId: string) => void;
   setExportFormat: (format: ExportFormat) => void;
   reset: () => void;
 }
 
 const initialState = {
-  sheetUrl: '',
-  headers: [],
-  rows: [],
-  selectedTemplate: null,
-  mapping: {},
-  cardImages: [],
-  cardImagesKey: '',
-  selectedCards: [],
+  activeGameId: null as string | null,
+  activeDeckId: null as string | null,
+  deckDataCache: {} as Record<string, DeckCache>,
   exportFormat: 'png' as ExportFormat,
 };
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   ...initialState,
 
-  setSheetUrl: (url) => set({ sheetUrl: url }),
+  setActiveGame: (gameId) => set({ activeGameId: gameId }),
 
-  setSheetData: (headers, rows) => set({ headers, rows }),
+  setActiveDeck: (deckId) => set({ activeDeckId: deckId }),
 
-  setCardImages: (images, key) => set({ cardImages: images, cardImagesKey: key ?? '' }),
-
-  setTemplate: (template) => set({ selectedTemplate: template, mapping: {}, cardImages: [] }),
-
-  setMapping: (mapping) => set({ mapping }),
-
-  setFieldMapping: (templateField, sheetColumn) =>
+  setDeckData: (deckId, headers, rows) =>
     set((state) => ({
-      mapping: { ...state.mapping, [templateField]: sheetColumn },
+      deckDataCache: {
+        ...state.deckDataCache,
+        [deckId]: {
+          ...state.deckDataCache[deckId],
+          headers,
+          rows,
+          cardImages: state.deckDataCache[deckId]?.cardImages ?? [],
+          cardImagesKey: state.deckDataCache[deckId]?.cardImagesKey ?? '',
+        },
+      },
     })),
 
-  toggleCardSelection: (index) =>
+  setDeckCardImages: (deckId, images, key) =>
+    set((state) => ({
+      deckDataCache: {
+        ...state.deckDataCache,
+        [deckId]: {
+          ...state.deckDataCache[deckId],
+          headers: state.deckDataCache[deckId]?.headers ?? [],
+          rows: state.deckDataCache[deckId]?.rows ?? [],
+          cardImages: images,
+          cardImagesKey: key,
+        },
+      },
+    })),
+
+  clearDeckCache: (deckId) =>
     set((state) => {
-      const selected = state.selectedCards.includes(index)
-        ? state.selectedCards.filter((i) => i !== index)
-        : [...state.selectedCards, index];
-      return { selectedCards: selected };
+      const { [deckId]: _, ...rest } = state.deckDataCache;
+      return { deckDataCache: rest };
     }),
-
-  selectAllCards: () =>
-    set((state) => ({
-      selectedCards: state.rows.map((_, i) => i),
-    })),
-
-  deselectAllCards: () => set({ selectedCards: [] }),
 
   setExportFormat: (format) => set({ exportFormat: format }),
 

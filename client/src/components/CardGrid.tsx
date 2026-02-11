@@ -3,9 +3,13 @@ import { useState } from 'react';
 interface CardGridProps {
   cardImages: string[];
   cardLabels?: string[];
+  /** Optional per-card IDs that replace "Card N" in the display. */
+  cardIds?: string[];
+  /** Number of leading items that use their label as-is (no "Card N:" prefix). Remaining items are numbered starting at 1. */
+  rawLabelCount?: number;
 }
 
-export default function CardGrid({ cardImages, cardLabels }: CardGridProps) {
+export default function CardGrid({ cardImages, cardLabels, cardIds, rawLabelCount = 0 }: CardGridProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   return (
@@ -37,7 +41,14 @@ export default function CardGrid({ cardImages, cardLabels }: CardGridProps) {
                 textAlign: 'center',
               }}
             >
-              {cardLabels?.[i] ? `Card ${i + 1}: ${cardLabels[i]}` : `Card ${i + 1}`}
+              {i < rawLabelCount
+                ? (cardLabels?.[i] || `Card ${i + 1}`)
+                : (() => {
+                    const idx = i - rawLabelCount;
+                    const id = cardIds?.[idx] || `Card ${idx + 1}`;
+                    const label = cardLabels?.[i];
+                    return label ? `${id}: ${label}` : id;
+                  })()}
             </div>
           </div>
         ))}

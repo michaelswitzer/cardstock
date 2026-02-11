@@ -14,12 +14,17 @@ client/dist/
 # Export outputs
 output/
 
+# User content
+artwork/
+
 # Templates (except example)
 server/templates/*
 !server/templates/example/
 
-# Local defaults
+# Local data
+.cardmaker-data.json
 .cardmaker-defaults.json
+.cardmaker-defaults.json.bak
 
 # IDE
 .vscode/

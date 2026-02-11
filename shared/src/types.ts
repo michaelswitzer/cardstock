@@ -50,6 +50,10 @@ export interface ExportOptions {
   pdfPageSize?: 'letter' | 'a4';
   /** PDF-specific: include crop marks */
   pdfCropMarks?: boolean;
+  /** Include card back image in export */
+  includeCardBack?: boolean;
+  /** Artwork filename for the card back */
+  cardBackImage?: string;
 }
 
 /** Tracks async export progress */
@@ -61,15 +65,55 @@ export interface ExportJob {
   completed: number;
   format: ExportFormat;
   outputPath?: string;
+  /** Path to exported card back image (when applicable) */
+  cardBackPath?: string;
+  /** All output file paths (for multi-file exports) */
+  outputPaths?: string[];
   error?: string;
 }
 
-/** Saved local defaults for the wizard */
-export interface LocalDefaults {
+/** A tab (sheet) within a Google Sheets document */
+export interface SheetTab {
+  name: string;
+  gid: string;
+}
+
+/** A game project tied to a Google Sheets document */
+export interface Game {
+  id: string;
+  title: string;
+  description?: string;
+  coverImage?: string;
+  sheetUrl: string;
+  deckIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A deck pairs a sheet tab + template + field mapping */
+export interface Deck {
+  id: string;
+  gameId: string;
+  name: string;
+  sheetTabGid: string;
+  sheetTabName: string;
+  templateId: string;
+  mapping: FieldMapping;
+  cardBackImage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Persisted application data */
+export interface AppData {
   version: number;
-  sheetUrl?: string;
-  defaultTemplateId?: string;
-  mappings?: Record<string, FieldMapping>;
+  games: Game[];
+  decks: Deck[];
+}
+
+/** API response for sheet tab discovery */
+export interface SheetTabsResponse {
+  tabs: SheetTab[];
 }
 
 /** API response for sheet data */
