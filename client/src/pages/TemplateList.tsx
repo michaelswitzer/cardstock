@@ -56,8 +56,7 @@ export default function TemplateList() {
             </div>
             <div style={{ display: 'flex', gap: 'var(--sp-2)', flexShrink: 0 }}>
               <button
-                className="secondary"
-                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                className="secondary sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/templates/${t.id}?edit=1`);
@@ -66,8 +65,7 @@ export default function TemplateList() {
                 Edit
               </button>
               <button
-                className="danger"
-                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                className="danger sm"
                 onClick={(e) => handleDelete(e, t.id, t.name)}
               >
                 Delete

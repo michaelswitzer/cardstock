@@ -47,24 +47,17 @@ export default function CreateGameModal({ open, onClose }: CreateGameModalProps)
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal-panel" style={{ width: '100%', maxWidth: 500 }}>
+      <div className="modal-panel" style={{ width: '100%', maxWidth: 600 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>New Game</h2>
-          <button
-            className="secondary"
-            onClick={onClose}
-            style={{ padding: 'var(--sp-1) 10px', fontSize: 13 }}
-          >
-            Close
-          </button>
+          <button className="secondary sm" onClick={onClose}>Close</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
           <div>
-            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-              Title *
-            </label>
+            <label htmlFor="game-title" className="form-label">Title *</label>
             <input
+              id="game-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="My Card Game"
@@ -73,10 +66,9 @@ export default function CreateGameModal({ open, onClose }: CreateGameModalProps)
           </div>
 
           <div>
-            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-              Description
-            </label>
+            <label htmlFor="game-desc" className="form-label">Description</label>
             <textarea
+              id="game-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional description"
@@ -86,10 +78,9 @@ export default function CreateGameModal({ open, onClose }: CreateGameModalProps)
           </div>
 
           <div>
-            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-              Google Sheet URL *
-            </label>
+            <label htmlFor="game-sheet" className="form-label">Google Sheet URL *</label>
             <input
+              id="game-sheet"
               value={sheetUrl}
               onChange={(e) => setSheetUrl(e.target.value)}
               placeholder="https://docs.google.com/spreadsheets/d/..."

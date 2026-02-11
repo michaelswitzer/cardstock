@@ -213,6 +213,22 @@ th {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Small button variant for inline/row actions */
+
+button.sm {
+  padding: var(--sp-1) var(--sp-2);
+  font-size: 12px;
+}
+
+/* Form labels */
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: var(--sp-1);
+}
+
 /* Links */
 
 a {
@@ -295,6 +311,9 @@ a:hover {
   background: none;
   text-align: left;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar-item:hover {

@@ -116,20 +116,14 @@ export default function ExportModal({
     >
       <div
         className="modal-panel"
-        style={{ width: '100%', maxWidth: 560 }}
+        style={{ width: '100%', maxWidth: 600 }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0 }}>
             {isGameExport ? 'Export All Decks' : 'Export'}
           </h2>
           {!exporting && (
-            <button
-              className="secondary"
-              onClick={onClose}
-              style={{ padding: 'var(--sp-1) 10px', fontSize: 13 }}
-            >
-              Close
-            </button>
+            <button className="secondary sm" onClick={onClose}>Close</button>
           )}
         </div>
 

@@ -51,13 +51,7 @@ export default function TemplateViewerModal({ templateId, onClose }: TemplateVie
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>{data?.template?.name ?? 'Template'}</h2>
-          <button
-            className="secondary"
-            onClick={onClose}
-            style={{ padding: 'var(--sp-1) 10px', fontSize: 13 }}
-          >
-            Close
-          </button>
+          <button className="secondary sm" onClick={onClose}>Close</button>
         </div>
 
         <div className="tab-bar">

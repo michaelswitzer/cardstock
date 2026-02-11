@@ -39,6 +39,9 @@ export default function CardGrid({ cardImages, cardLabels, cardIds, rawLabelCoun
                 fontSize: 12,
                 color: 'var(--text-muted)',
                 textAlign: 'center',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
             >
               {i < rawLabelCount

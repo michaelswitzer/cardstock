@@ -222,23 +222,16 @@ export default function CreateDeckModal({
               Step {step} of 2
             </span>
           </div>
-          <button
-            className="secondary"
-            onClick={onClose}
-            style={{ padding: 'var(--sp-1) 10px', fontSize: 13 }}
-          >
-            Close
-          </button>
+          <button className="secondary sm" onClick={onClose}>Close</button>
         </div>
 
         {/* Step 1: Basic config */}
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-                Deck Name *
-              </label>
+              <label htmlFor="deck-name" className="form-label">Deck Name *</label>
               <input
+                id="deck-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Action Cards"
@@ -247,13 +240,12 @@ export default function CreateDeckModal({
             </div>
 
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-                Sheet *
-              </label>
+              <label htmlFor="deck-sheet" className="form-label">Sheet *</label>
               {tabsLoading ? (
                 <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Discovering sheets...</p>
               ) : (
                 <select
+                  id="deck-sheet"
                   value={selectedTabGid}
                   onChange={(e) => handleTabChange(e.target.value)}
                   style={{ width: '100%' }}
@@ -269,10 +261,9 @@ export default function CreateDeckModal({
             </div>
 
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-                Template *
-              </label>
+              <label htmlFor="deck-template" className="form-label">Template *</label>
               <select
+                id="deck-template"
                 value={templateId}
                 onChange={(e) => { setTemplateId(e.target.value); setMapping({}); }}
                 style={{ width: '100%' }}
@@ -287,10 +278,9 @@ export default function CreateDeckModal({
             </div>
 
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-                Card Back Image
-              </label>
+              <label htmlFor="deck-cardback" className="form-label">Card Back Image</label>
               <select
+                id="deck-cardback"
                 value={cardBackImage}
                 onChange={(e) => setCardBackImage(e.target.value)}
                 style={{ width: '100%' }}
@@ -359,10 +349,10 @@ export default function CreateDeckModal({
               {sheetRows.length > 1 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', justifyContent: 'center' }}>
                   <button
-                    className="secondary"
-                    style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                    className="secondary sm"
                     onClick={() => setPreviewIndex((i) => Math.max(0, i - 1))}
                     disabled={previewIndex === 0}
+                    aria-label="Previous card"
                   >
                     &larr;
                   </button>
@@ -370,10 +360,10 @@ export default function CreateDeckModal({
                     Card {previewIndex + 1} of {sheetRows.length}
                   </span>
                   <button
-                    className="secondary"
-                    style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                    className="secondary sm"
                     onClick={() => setPreviewIndex((i) => Math.min(sheetRows.length - 1, i + 1))}
                     disabled={previewIndex >= sheetRows.length - 1}
+                    aria-label="Next card"
                   >
                     &rarr;
                   </button>

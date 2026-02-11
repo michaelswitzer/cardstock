@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useDeck } from '../hooks/useDecks';
 import { useGame } from '../hooks/useGames';
 import { useAppStore } from '../stores/appStore';
@@ -123,6 +123,12 @@ export default function DeckView() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-5)' }}>
         <div>
+          {gameData && (
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 'var(--sp-1)' }}>
+              <Link to={`/games/${gameId}`} style={{ color: 'var(--text-muted)' }}>{gameData.game.title}</Link>
+              {' / '}
+            </p>
+          )}
           <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{deck.name}</h1>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Sheet: {deck.sheetTabName} &middot; Template: {templateName}

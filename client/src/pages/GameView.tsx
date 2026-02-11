@@ -91,10 +91,9 @@ export default function GameView() {
                 style={{ width: '100%' }}
               />
               <div>
-                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-                  Cover Image
-                </label>
+                <label htmlFor="game-cover" className="form-label">Cover Image</label>
                 <select
+                  id="game-cover"
                   value={editCoverImage}
                   onChange={(e) => setEditCoverImage(e.target.value)}
                   style={{ width: '100%' }}
@@ -106,10 +105,9 @@ export default function GameView() {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-                  Google Sheet URL
-                </label>
+                <label htmlFor="game-sheet-url" className="form-label">Google Sheet URL</label>
                 <input
+                  id="game-sheet-url"
                   value={editSheetUrl}
                   onChange={(e) => setEditSheetUrl(e.target.value)}
                   placeholder="https://docs.google.com/spreadsheets/d/..."
@@ -209,8 +207,7 @@ export default function GameView() {
                 </div>
               </Link>
               <button
-                className="secondary"
-                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                className="secondary sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   setEditingDeck(deck);
@@ -220,8 +217,7 @@ export default function GameView() {
                 Edit
               </button>
               <button
-                className="primary"
-                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                className="primary sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/games/${game.id}/decks/${deck.id}`);
@@ -230,8 +226,7 @@ export default function GameView() {
                 Export
               </button>
               <button
-                className="danger"
-                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                className="danger sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteDeck(deck.id, deck.name);

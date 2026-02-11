@@ -41,6 +41,7 @@ export default function TemplateView() {
   const createMutation = useCreateTemplate();
   const updateMutation = useUpdateTemplate();
   const deleteMutation = useDeleteTemplate();
+  const [error, setError] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['template-detail', templateId],
@@ -176,9 +177,10 @@ export default function TemplateView() {
   };
 
   const handleSave = async () => {
+    setError('');
     if (isCreateMode) {
       if (!newId || !/^[a-zA-Z0-9_-]+$/.test(newId)) {
-        alert('Template ID must be a URL-safe slug (letters, numbers, hyphens, underscores).');
+        setError('Template ID must be a URL-safe slug (letters, numbers, hyphens, underscores).');
         return;
       }
       try {
@@ -190,7 +192,7 @@ export default function TemplateView() {
         });
         navigate(`/templates/${newId}`, { replace: true });
       } catch (err: any) {
-        alert(err.response?.data?.error ?? 'Failed to create template');
+        setError(err.response?.data?.error ?? 'Failed to create template');
       }
     } else {
       try {
@@ -204,7 +206,7 @@ export default function TemplateView() {
         setSearchParams({}, { replace: true });
         queryClient.invalidateQueries({ queryKey: ['template-detail', templateId] });
       } catch (err: any) {
-        alert(err.response?.data?.error ?? 'Failed to update template');
+        setError(err.response?.data?.error ?? 'Failed to update template');
       }
     }
   };
@@ -229,7 +231,7 @@ export default function TemplateView() {
       await deleteMutation.mutateAsync(templateId!);
       navigate('/templates', { replace: true });
     } catch (err: any) {
-      alert(err.response?.data?.error ?? 'Failed to delete template');
+      setError(err.response?.data?.error ?? 'Failed to delete template');
     }
   };
 
@@ -275,13 +277,16 @@ export default function TemplateView() {
         </p>
       )}
 
+      {error && (
+        <div style={{ color: 'var(--error)', fontSize: 13, marginBottom: 'var(--sp-3)' }}>{error}</div>
+      )}
+
       {/* ID input for create mode */}
       {isCreateMode && (
         <div style={{ marginBottom: 'var(--sp-4)' }}>
-          <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-            Template ID (directory slug)
-          </label>
+          <label htmlFor="template-id" className="form-label">Template ID (directory slug)</label>
           <input
+            id="template-id"
             type="text"
             value={newId}
             onChange={(e) => setNewId(e.target.value)}
@@ -351,7 +356,7 @@ export default function TemplateView() {
             )}
             {data.template.fields.map((f: TemplateField) => (
               <div key={f.name}>
-                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
+                <label className="form-label">
                   {f.label}
                 </label>
                 {f.type === 'textarea' ? (
@@ -373,7 +378,7 @@ export default function TemplateView() {
             ))}
             {data.template.imageSlots.length > 0 && (
               <div>
-                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
+                <label className="form-label">
                   Load artwork from
                 </label>
                 <select
@@ -390,7 +395,7 @@ export default function TemplateView() {
             )}
             {data.template.imageSlots.map((s: ImageSlot) => (
               <div key={s.name}>
-                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
+                <label className="form-label">
                   {s.label}
                 </label>
                 <select
