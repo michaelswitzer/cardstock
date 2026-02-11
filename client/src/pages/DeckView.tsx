@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useDeck } from '../hooks/useDecks';
 import { useGame } from '../hooks/useGames';
 import { useAppStore } from '../stores/appStore';
-import { fetchSheetData, renderPreviewBatch } from '../api/client';
+import { useQuery } from '@tanstack/react-query';
+import { fetchSheetData, renderPreviewBatch, fetchTemplates } from '../api/client';
 import { buildTabCsvUrl } from '../api/sheetUtils';
 import CardGrid from '../components/CardGrid';
 import ExportModal from '../components/ExportModal';
@@ -13,6 +14,8 @@ export default function DeckView() {
   const { id: gameId, deckId } = useParams<{ id: string; deckId: string }>();
   const { data: deck, isLoading: deckLoading } = useDeck(deckId);
   const { data: gameData } = useGame(gameId);
+  const { data: templateData } = useQuery({ queryKey: ['templates'], queryFn: fetchTemplates });
+  const templateName = templateData?.templates.find((t) => t.id === deck?.templateId)?.name ?? deck?.templateId;
   const { deckDataCache, setDeckData, setDeckCardImages } = useAppStore();
 
   const [loading, setLoading] = useState(false);
@@ -122,7 +125,7 @@ export default function DeckView() {
         <div>
           <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{deck.name}</h1>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            Tab: {deck.sheetTabName} &middot; Template: {deck.templateId}
+            Sheet: {deck.sheetTabName} &middot; Template: {templateName}
             {deck.cardBackImage && <> &middot; Card Back: {deck.cardBackImage}</>}
           </p>
         </div>

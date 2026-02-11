@@ -158,7 +158,7 @@ export default function CreateDeckModal({
 
   const handleNext = () => {
     if (!canProceedToStep2) {
-      setError('Name, tab, and template are required');
+      setError('Name, sheet, and template are required');
       return;
     }
     setError('');
@@ -248,17 +248,17 @@ export default function CreateDeckModal({
 
             <div>
               <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 'var(--sp-1)' }}>
-                Sheet Tab *
+                Sheet *
               </label>
               {tabsLoading ? (
-                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Discovering tabs...</p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Discovering sheets...</p>
               ) : (
                 <select
                   value={selectedTabGid}
                   onChange={(e) => handleTabChange(e.target.value)}
                   style={{ width: '100%' }}
                 >
-                  <option value="">Select a tab</option>
+                  <option value="">Select a sheet</option>
                   {tabs?.map((tab) => (
                     <option key={tab.gid} value={tab.gid}>
                       {tab.name}

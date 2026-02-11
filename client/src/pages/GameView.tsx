@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useGame, useDeleteGame, useUpdateGame } from '../hooks/useGames';
 import { useDeleteDeck } from '../hooks/useDecks';
-import { fetchImages } from '../api/client';
+import { fetchImages, fetchTemplates } from '../api/client';
 import CreateDeckModal from '../components/CreateDeckModal';
 import ExportModal from '../components/ExportModal';
 import type { Deck } from '@cardmaker/shared';
@@ -29,6 +29,11 @@ export default function GameView() {
     queryFn: fetchImages,
     enabled: editing,
   });
+  const { data: templateData } = useQuery({
+    queryKey: ['templates'],
+    queryFn: fetchTemplates,
+  });
+  const templateNames = new Map(templateData?.templates.map((t) => [t.id, t.name]) ?? []);
 
   if (isLoading || !data) {
     return <p style={{ color: 'var(--text-muted)' }}>Loading game...</p>;
@@ -117,16 +122,28 @@ export default function GameView() {
               </div>
             </div>
           ) : (
-            <>
-              <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{game.title}</h1>
-              {game.description && (
-                <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-2)' }}>{game.description}</p>
+            <div style={{ display: 'flex', gap: 'var(--sp-4)', alignItems: 'center' }}>
+              {game.coverImage && (
+                <img
+                  src={`/api/images/thumb/${game.coverImage}?w=120&h=120`}
+                  alt={game.title}
+                  style={{
+                    borderRadius: 'var(--radius)',
+                    flexShrink: 0,
+                    objectFit: 'contain',
+                  }}
+                />
               )}
-              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                {decks.length} deck{decks.length !== 1 ? 's' : ''} &middot;{' '}
-                <span title={game.sheetUrl} style={{ cursor: 'help' }}>Sheet linked</span>
-              </p>
-            </>
+              <div>
+                <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{game.title}</h1>
+                {game.description && (
+                  <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-2)' }}>{game.description}</p>
+                )}
+                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {decks.length} deck{decks.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
           )}
         </div>
         {!editing && (
@@ -134,10 +151,10 @@ export default function GameView() {
             <button className="secondary" onClick={startEditing}>Edit</button>
             {decks.length > 0 && (
               <button className="primary" onClick={() => setShowExport(true)}>
-                Export All Decks
+                Export
               </button>
             )}
-            <button className="danger" onClick={handleDeleteGame}>Delete Game</button>
+            <button className="danger" onClick={handleDeleteGame}>Delete</button>
           </div>
         )}
       </div>
@@ -152,7 +169,7 @@ export default function GameView() {
 
       {decks.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px var(--sp-5)', color: 'var(--text-muted)' }}>
-          <p>No decks yet. Create a deck to link a sheet tab with a template.</p>
+          <p>No decks yet. Create a deck to link a sheet with a template.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
@@ -188,7 +205,7 @@ export default function GameView() {
               >
                 <div style={{ fontWeight: 600 }}>{deck.name}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  Tab: {deck.sheetTabName} &middot; Template: {deck.templateId}
+                  Sheet: {deck.sheetTabName} &middot; Template: {templateNames.get(deck.templateId) ?? deck.templateId}
                 </div>
               </Link>
               <button
@@ -201,6 +218,16 @@ export default function GameView() {
                 }}
               >
                 Edit
+              </button>
+              <button
+                className="primary"
+                style={{ padding: 'var(--sp-1) var(--sp-2)', fontSize: 12 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/games/${game.id}/decks/${deck.id}`);
+                }}
+              >
+                Export
               </button>
               <button
                 className="danger"

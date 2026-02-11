@@ -25,7 +25,7 @@ export default function GamesInventory() {
         <div style={{ textAlign: 'center', padding: '60px var(--sp-5)' }}>
           <h3 style={{ marginBottom: 'var(--sp-2)' }}>No games yet</h3>
           <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-5)' }}>
-            Create a game to get started. Each game links to a Google Sheet with multiple tabs for different decks.
+            Create a game to get started. Each game links to a Google Sheets document with multiple sheets for different decks.
           </p>
           <button className="primary" onClick={() => setShowCreate(true)}>
             Create Your First Game

@@ -62,7 +62,7 @@ export default function Sidebar() {
 
       <div className="sidebar-section">
         <div className="sidebar-section-header">
-          <NavLink to="/" className="sidebar-section-link"><h3>Games</h3></NavLink>
+          <NavLink to="/" className="sidebar-section-link"><h3>{'\u{2660}'} Games</h3></NavLink>
           <button
             className="sidebar-add-btn"
             onClick={() => setShowCreateGame(true)}
@@ -89,7 +89,7 @@ export default function Sidebar() {
 
       <div className="sidebar-section">
         <div className="sidebar-section-header">
-          <NavLink to="/templates" className="sidebar-section-link"><h3>Templates</h3></NavLink>
+          <NavLink to="/templates" className="sidebar-section-link"><h3>{'\u{2727}'} Templates</h3></NavLink>
         </div>
         {templates.map((t) => (
           <NavLink
