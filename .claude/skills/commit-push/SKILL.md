@@ -3,7 +3,7 @@ name: commit-push
 description: Stage, commit, and push changes to the remote repository
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: [commit message or leave blank for auto-generated]
+argument-hint: "[commit message or leave blank for auto-generated]"
 ---
 
 Commit and push all current changes. If an argument is provided, use it as the commit message summary. Otherwise, auto-generate one from the changes.

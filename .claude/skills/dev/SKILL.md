@@ -3,13 +3,14 @@ name: dev
 description: Start the CardMaker development environment (server + client)
 disable-model-invocation: true
 allowed-tools: Bash
-argument-hint: [start|stop|restart]
+argument-hint: "[start|stop|restart|electron]"
 ---
 
 Manage the CardMaker dev servers. The argument determines the action:
 - `start` (default if no argument): start both servers
 - `stop`: stop both servers
 - `restart`: stop then start both servers
+- `electron`: build and launch the Electron desktop app in dev mode
 
 ## Stop Procedure
 
@@ -40,7 +41,22 @@ Manage the CardMaker dev servers. The argument determines the action:
 
 Report the status of both processes when done.
 
+## Electron Procedure
+
+1. First run the stop procedure to clear stale processes.
+
+2. Build everything:
+   ```bash
+   cd /c/Users/mikes/Documents/CardMaker && npm run build:electron
+   ```
+
+3. Launch Electron in dev mode:
+   ```bash
+   cd /c/Users/mikes/Documents/CardMaker && npx electron .
+   ```
+
 ## Important Notes
 - Do NOT use `npm run dev` (concurrently) — tsx watch often fails silently under it.
 - Server runs on port 3001, client on port 5173.
 - Client proxies `/api` and `/output` to the server automatically.
+- Electron mode builds all workspaces and launches the desktop app (no separate Vite process needed).

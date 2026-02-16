@@ -7,6 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run build            # Build all workspaces (shared → server → client)
 npm run build -w shared  # Build shared package (must run first if types changed)
+npm run build:electron   # Build all + compile Electron + copy client dist
+npm run dist             # Full Electron installer build (includes Chrome download)
 ```
 
 No test framework is currently configured.
@@ -109,9 +111,34 @@ games/
 
 The `games/` directory is served statically at `/games` (used internally by Puppeteer for rendering). The client accesses images only through the API (`/api/games/:gameId/images/...`).
 
+## Electron Desktop App
+
+The app can be packaged as a standalone Windows desktop app via Electron.
+
+**Architecture:** Electron main process (`electron/main.ts`) sets env vars, imports the compiled server directly (in-process), and opens a `BrowserWindow` pointing at `localhost:3001`. Express serves the built client as static files.
+
+**Key files:**
+- `electron/main.ts` — main process (data folder picker, splash, server startup)
+- `electron/preload.ts` — contextBridge for IPC
+- `scripts/download-chrome.js` — downloads Chrome for Testing for puppeteer-core
+- `scripts/download-fonts.js` — downloads Google Fonts for offline use
+- `scripts/copy-client-dist.js` — copies client build for Electron packaging
+
+**Env var overrides (set by Electron, fallback to `__dirname`-relative in dev):**
+- `CARDMAKER_DATA_ROOT` — root data folder (games, output)
+- `CARDMAKER_OUTPUT_DIR` — export output directory
+- `CARDMAKER_TEMPLATES_DIR` — templates directory
+- `CARDMAKER_CLIENT_DIST` — built client directory (enables static serving + SPA fallback)
+- `PUPPETEER_EXECUTABLE_PATH` — Chrome binary path for puppeteer-core
+- `PORT` — server port override (for port conflict avoidance)
+
+**Dev Electron mode:** `npm run build:electron && npx electron .`
+
+**Puppeteer:** Uses `puppeteer-core` (not `puppeteer`). In dev, run `node scripts/download-chrome.js` once to get a Chrome binary, then set `PUPPETEER_EXECUTABLE_PATH`. In production Electron, Chrome is bundled in `extraResources/chrome/`.
+
 ## Conventions
 
 - Export output goes to `output/` at project root, served at `/output`
 - `games/` and `output/` are gitignored
 - Server routes use `next(err)` pattern for error handling with centralized `errorHandler` middleware
-- `PROJECT_ROOT` is resolved relative to `__dirname` in server files (ESM with `fileURLToPath`)
+- `PROJECT_ROOT` is resolved relative to `__dirname` in server files, overridable via `CARDMAKER_DATA_ROOT` env var
