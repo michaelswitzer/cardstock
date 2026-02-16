@@ -327,6 +327,12 @@ a:hover {
   justify-content: center;
 }
 
+.sidebar.collapsed .sidebar-title-link {
+  justify-content: center;
+  padding: 0 var(--sp-2);
+  width: 100%;
+}
+
 .sidebar.collapsed .sidebar-item {
   padding: var(--sp-2);
   justify-content: center;
@@ -376,6 +382,20 @@ a:hover {
 .sidebar-title-link:hover {
   background: var(--surface-light);
   text-decoration: none;
+}
+
+.sidebar-spade {
+  color: var(--primary);
+  font-size: 1.5em;
+  line-height: 1;
+  transition: font-size 0.15s ease;
+}
+
+.sidebar.collapsed .sidebar-spade {
+  font-size: 2.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar-title-text {

@@ -69,7 +69,7 @@ export default function Sidebar() {
     <nav className={`sidebar${sidebarCollapsed ? ' collapsed' : ''}`}>
       <div className="sidebar-title">
         <NavLink to="/" className="sidebar-title-link">
-          <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
+          <span className="sidebar-spade">♠</span>
           <span className="sidebar-title-text">Cardstock</span>
         </NavLink>
       </div>
