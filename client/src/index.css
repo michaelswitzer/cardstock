@@ -492,37 +492,6 @@ a:hover {
 
 /* Breadcrumb */
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin-bottom: var(--sp-4);
-  font-family: var(--font-heading);
-  font-weight: 500;
-}
-
-.breadcrumb a {
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 0.1s ease;
-}
-
-.breadcrumb a:hover {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-.breadcrumb-sep {
-  opacity: 0.4;
-  font-size: var(--text-xs);
-}
-
-.breadcrumb-current {
-  color: var(--text);
-}
-
 /* Game tiles grid */
 
 .game-grid {

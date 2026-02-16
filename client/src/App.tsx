@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import Breadcrumb from './components/Breadcrumb';
 import WindowControls from './components/WindowControls';
 import GamesInventory from './pages/GamesInventory';
 import GameView from './pages/GameView';
@@ -15,7 +14,6 @@ export default function App() {
       <Sidebar />
       <main className="main-content">
         <WindowControls />
-        <Breadcrumb />
         <Routes>
           <Route path="/" element={<GamesInventory />} />
           <Route path="/games/:id" element={<GameView />} />
