@@ -8,9 +8,6 @@ interface CardGridProps {
   cardIds?: string[];
   rawLabelCount?: number;
   cardZoom?: number;
-  selectionMode?: boolean;
-  selectedCards?: Set<number>;
-  onSelectionChange?: (selected: Set<number>) => void;
   cardStatus?: CardStatus[];
 }
 
@@ -20,9 +17,6 @@ export default function CardGrid({
   cardIds,
   rawLabelCount = 0,
   cardZoom = 240,
-  selectionMode = false,
-  selectedCards,
-  onSelectionChange,
   cardStatus,
 }: CardGridProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -38,17 +32,7 @@ export default function CardGrid({
   };
 
   const handleCardClick = (i: number) => {
-    if (selectionMode && onSelectionChange && selectedCards) {
-      const next = new Set(selectedCards);
-      if (next.has(i)) {
-        next.delete(i);
-      } else {
-        next.add(i);
-      }
-      onSelectionChange(next);
-    } else {
-      setLightboxIndex(i);
-    }
+    setLightboxIndex(i);
   };
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -81,15 +65,10 @@ export default function CardGrid({
         {cardImages.map((src, i) => (
           <div
             key={i}
-            className={`card-item${selectionMode ? ' card-item-selectable' : ''}${selectionMode && selectedCards?.has(i) ? ' selected' : ''}`}
+            className="card-item"
             style={{ cursor: 'pointer' }}
             onClick={() => handleCardClick(i)}
           >
-            {selectionMode && (
-              <div className="card-item-checkbox">
-                {selectedCards?.has(i) ? '\u2713' : ''}
-              </div>
-            )}
             {cardStatus && cardStatus[i] && (
               <div className={`card-status-dot ${cardStatus[i]}`} style={{ position: 'absolute' }} />
             )}

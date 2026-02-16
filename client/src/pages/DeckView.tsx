@@ -27,8 +27,6 @@ export default function DeckView() {
   const [refreshing, setRefreshing] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [activeTab, setActiveTab] = useState<DeckTab>('cards');
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedCards, setSelectedCards] = useState<Set<number>>(new Set());
   const renderKey = useRef<number>(0);
 
   const cache = deckId ? deckDataCache[deckId] : undefined;
@@ -159,23 +157,6 @@ export default function DeckView() {
 
   const cardStatus = cardImages.length > 0 ? computeCardStatus() : undefined;
 
-  const toggleSelectionMode = () => {
-    if (selectionMode) {
-      setSelectionMode(false);
-      setSelectedCards(new Set());
-    } else {
-      setSelectionMode(true);
-    }
-  };
-
-  const selectAll = () => {
-    setSelectedCards(new Set(displayImages.map((_, i) => i)));
-  };
-
-  const selectNone = () => {
-    setSelectedCards(new Set());
-  };
-
   const zoomOptions = [
     { value: 160 as const, label: 'S' },
     { value: 240 as const, label: 'M' },
@@ -253,19 +234,6 @@ export default function DeckView() {
                   ))}
                 </div>
 
-                <button
-                  className={selectionMode ? 'primary sm' : 'secondary sm'}
-                  onClick={toggleSelectionMode}
-                >
-                  {selectionMode ? `Selected (${selectedCards.size})` : 'Select'}
-                </button>
-
-                {selectionMode && (
-                  <>
-                    <button className="secondary sm" onClick={selectAll}>All</button>
-                    <button className="secondary sm" onClick={selectNone}>None</button>
-                  </>
-                )}
               </div>
 
               <CardGrid
@@ -274,9 +242,6 @@ export default function DeckView() {
                 cardIds={cardIds}
                 rawLabelCount={hasCardBack ? 1 : 0}
                 cardZoom={cardZoom}
-                selectionMode={selectionMode}
-                selectedCards={selectedCards}
-                onSelectionChange={setSelectedCards}
                 cardStatus={cardStatus}
               />
             </>

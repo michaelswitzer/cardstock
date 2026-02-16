@@ -745,41 +745,6 @@ button.danger:hover {
   color: var(--text);
 }
 
-/* Selection mode */
-
-.card-item-selectable {
-  position: relative;
-  cursor: pointer !important;
-}
-
-.card-item-selectable.selected {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
-}
-
-.card-item-checkbox {
-  position: absolute;
-  top: var(--sp-2);
-  left: var(--sp-2);
-  z-index: 2;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  background: rgba(29, 27, 32, 0.7);
-  border: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
-  transition: background 0.1s ease, border-color 0.1s ease;
-}
-
-.card-item-selectable.selected .card-item-checkbox {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
 /* Card status dots */
 
 .card-status-dot {
