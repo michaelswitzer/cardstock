@@ -166,8 +166,8 @@ export async function updateGame(
 
   const gf = await readGameFile(slug);
   if (updates.title !== undefined) gf.title = updates.title;
-  if (updates.description !== undefined) gf.description = updates.description;
-  if (updates.coverImage !== undefined) gf.coverImage = updates.coverImage;
+  if (updates.description !== undefined) gf.description = updates.description || undefined;
+  if (updates.coverImage !== undefined) gf.coverImage = updates.coverImage || undefined;
   if (updates.sheetUrl !== undefined) gf.sheetUrl = updates.sheetUrl;
   gf.updatedAt = new Date().toISOString();
 
@@ -274,7 +274,7 @@ export async function updateDeck(
   if (updates.sheetTabName !== undefined) sd.sheetTabName = updates.sheetTabName;
   if (updates.templateId !== undefined) sd.templateId = updates.templateId;
   if (updates.mapping !== undefined) sd.mapping = updates.mapping;
-  if (updates.cardBackImage !== undefined) sd.cardBackImage = updates.cardBackImage;
+  if (updates.cardBackImage !== undefined) sd.cardBackImage = updates.cardBackImage || undefined;
   sd.updatedAt = new Date().toISOString();
   gf.updatedAt = sd.updatedAt;
 

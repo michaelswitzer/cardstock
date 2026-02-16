@@ -201,7 +201,7 @@ export default function DeckEditor() {
           sheetTabName: selectedTabName,
           templateId,
           mapping,
-          cardBackImage: cardBackImage || undefined,
+          cardBackImage: cardBackImage || '',
         });
         navigate(`/games/${gameId}/decks/${deckId}`);
       } else {
@@ -212,7 +212,7 @@ export default function DeckEditor() {
           sheetTabName: selectedTabName,
           templateId,
           mapping,
-          cardBackImage: cardBackImage || undefined,
+          cardBackImage: cardBackImage || '',
         });
         navigate(`/games/${gameId}/decks/${newDeck.id}`);
       }

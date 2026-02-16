@@ -62,8 +62,8 @@ export default function GameView() {
     await updateGame.mutateAsync({
       id: game.id,
       title: editTitle,
-      description: editDescription || undefined,
-      coverImage: editCoverImage || undefined,
+      description: editDescription || '',
+      coverImage: editCoverImage || '',
       sheetUrl: editSheetUrl,
     });
     setEditing(false);
