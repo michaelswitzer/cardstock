@@ -1,36 +1,101 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+type CardStatus = 'green' | 'yellow' | 'red';
 
 interface CardGridProps {
   cardImages: string[];
   cardLabels?: string[];
-  /** Optional per-card IDs that replace "Card N" in the display. */
   cardIds?: string[];
-  /** Number of leading items that use their label as-is (no "Card N:" prefix). Remaining items are numbered starting at 1. */
   rawLabelCount?: number;
+  cardZoom?: number;
+  selectionMode?: boolean;
+  selectedCards?: Set<number>;
+  onSelectionChange?: (selected: Set<number>) => void;
+  cardStatus?: CardStatus[];
 }
 
-export default function CardGrid({ cardImages, cardLabels, cardIds, rawLabelCount = 0 }: CardGridProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+export default function CardGrid({
+  cardImages,
+  cardLabels,
+  cardIds,
+  rawLabelCount = 0,
+  cardZoom = 240,
+  selectionMode = false,
+  selectedCards,
+  onSelectionChange,
+  cardStatus,
+}: CardGridProps) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const getLabel = (i: number) => {
+    if (i < rawLabelCount) {
+      return cardLabels?.[i] || `Card ${i + 1}`;
+    }
+    const idx = i - rawLabelCount;
+    const id = cardIds?.[idx] || `Card ${idx + 1}`;
+    const label = cardLabels?.[i];
+    return label ? `${id}: ${label}` : id;
+  };
+
+  const handleCardClick = (i: number) => {
+    if (selectionMode && onSelectionChange && selectedCards) {
+      const next = new Set(selectedCards);
+      if (next.has(i)) {
+        next.delete(i);
+      } else {
+        next.add(i);
+      }
+      onSelectionChange(next);
+    } else {
+      setLightboxIndex(i);
+    }
+  };
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (lightboxIndex === null) return;
+    if (e.key === 'Escape') {
+      setLightboxIndex(null);
+    } else if (e.key === 'ArrowLeft') {
+      setLightboxIndex((i) => i !== null && i > 0 ? i - 1 : i);
+    } else if (e.key === 'ArrowRight') {
+      setLightboxIndex((i) => i !== null && i < cardImages.length - 1 ? i + 1 : i);
+    }
+  }, [lightboxIndex, cardImages.length]);
+
+  useEffect(() => {
+    if (lightboxIndex !== null) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [lightboxIndex, handleKeyDown]);
 
   return (
     <>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          gridTemplateColumns: `repeat(auto-fill, minmax(${cardZoom}px, 1fr))`,
           gap: 'var(--sp-3)',
         }}
       >
         {cardImages.map((src, i) => (
           <div
             key={i}
-            className="card-item"
+            className={`card-item${selectionMode ? ' card-item-selectable' : ''}${selectionMode && selectedCards?.has(i) ? ' selected' : ''}`}
             style={{ cursor: 'pointer' }}
-            onClick={() => setSelectedIndex(i)}
+            onClick={() => handleCardClick(i)}
           >
+            {selectionMode && (
+              <div className="card-item-checkbox">
+                {selectedCards?.has(i) ? '\u2713' : ''}
+              </div>
+            )}
+            {cardStatus && cardStatus[i] && (
+              <div className={`card-status-dot ${cardStatus[i]}`} style={{ position: 'absolute' }} />
+            )}
             <img
               src={src}
-              alt={`Card ${i + 1}`}
+              alt={getLabel(i)}
               style={{ width: '100%', display: 'block' }}
             />
             <div
@@ -44,34 +109,59 @@ export default function CardGrid({ cardImages, cardLabels, cardIds, rawLabelCoun
                 whiteSpace: 'nowrap',
               }}
             >
-              {i < rawLabelCount
-                ? (cardLabels?.[i] || `Card ${i + 1}`)
-                : (() => {
-                    const idx = i - rawLabelCount;
-                    const id = cardIds?.[idx] || `Card ${idx + 1}`;
-                    const label = cardLabels?.[i];
-                    return label ? `${id}: ${label}` : id;
-                  })()}
+              {getLabel(i)}
             </div>
           </div>
         ))}
       </div>
 
-      {selectedIndex !== null && (
+      {lightboxIndex !== null && (
         <div
-          className="modal-overlay"
-          onClick={() => setSelectedIndex(null)}
+          className="lightbox-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setLightboxIndex(null);
+          }}
         >
-          <img
-            src={cardImages[selectedIndex]}
-            alt={`Card ${selectedIndex + 1}`}
-            style={{
-              maxHeight: 'calc(100vh - 80px)',
-              maxWidth: 'calc(100vw - 80px)',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--shadow-lg)',
-            }}
-          />
+          <button
+            className="lightbox-close"
+            onClick={() => setLightboxIndex(null)}
+          >
+            {'\u2715'}
+          </button>
+
+          {lightboxIndex > 0 && (
+            <button
+              className="lightbox-nav prev"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex(lightboxIndex - 1);
+              }}
+            >
+              {'\u2190'}
+            </button>
+          )}
+
+          {lightboxIndex < cardImages.length - 1 && (
+            <button
+              className="lightbox-nav next"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex(lightboxIndex + 1);
+              }}
+            >
+              {'\u2192'}
+            </button>
+          )}
+
+          <div className="lightbox-content">
+            <img
+              src={cardImages[lightboxIndex]}
+              alt={getLabel(lightboxIndex)}
+            />
+            <div className="lightbox-label">
+              {getLabel(lightboxIndex)}
+            </div>
+          </div>
         </div>
       )}
     </>

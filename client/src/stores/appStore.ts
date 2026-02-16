@@ -8,11 +8,15 @@ interface DeckCache {
   cardImagesKey: string;
 }
 
+type CardZoom = 160 | 240 | 360;
+
 interface AppState {
   activeGameId: string | null;
   activeDeckId: string | null;
   deckDataCache: Record<string, DeckCache>;
   exportFormat: ExportFormat;
+  sidebarCollapsed: boolean;
+  cardZoom: CardZoom;
 
   // Actions
   setActiveGame: (gameId: string | null) => void;
@@ -21,6 +25,8 @@ interface AppState {
   setDeckCardImages: (deckId: string, images: string[], key: string) => void;
   clearDeckCache: (deckId: string) => void;
   setExportFormat: (format: ExportFormat) => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  setCardZoom: (zoom: CardZoom) => void;
   reset: () => void;
 }
 
@@ -29,6 +35,8 @@ const initialState = {
   activeDeckId: null as string | null,
   deckDataCache: {} as Record<string, DeckCache>,
   exportFormat: 'png' as ExportFormat,
+  sidebarCollapsed: localStorage.getItem('sidebar-collapsed') === 'true',
+  cardZoom: (Number(localStorage.getItem('card-zoom')) || 240) as CardZoom,
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -73,6 +81,16 @@ export const useAppStore = create<AppState>((set) => ({
     }),
 
   setExportFormat: (format) => set({ exportFormat: format }),
+
+  setSidebarCollapsed: (collapsed) => {
+    localStorage.setItem('sidebar-collapsed', String(collapsed));
+    return set({ sidebarCollapsed: collapsed });
+  },
+
+  setCardZoom: (zoom) => {
+    localStorage.setItem('card-zoom', String(zoom));
+    return set({ cardZoom: zoom });
+  },
 
   reset: () => set(initialState),
 }));

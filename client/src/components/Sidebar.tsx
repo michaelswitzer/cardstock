@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useGames } from '../hooks/useGames';
 import { useDecks } from '../hooks/useDecks';
 import { fetchTemplates } from '../api/client';
+import { useAppStore } from '../stores/appStore';
 import CreateGameModal from './CreateGameModal';
 import type { Game } from '@cardmaker/shared';
 
-function SidebarGame({ game, isRouteActive }: { game: Game; isRouteActive: boolean }) {
+function SidebarGame({ game, isRouteActive, collapsed }: { game: Game; isRouteActive: boolean; collapsed: boolean }) {
   const { data: decks } = useDecks(isRouteActive ? game.id : undefined);
 
   return (
@@ -19,9 +20,20 @@ function SidebarGame({ game, isRouteActive }: { game: Game; isRouteActive: boole
           `sidebar-item${isActive ? ' active' : ''}`
         }
       >
-        {game.title}
+        {game.coverImage ? (
+          <img
+            src={`/api/games/${game.id}/images/thumb/${game.coverImage}?w=40&h=40`}
+            alt=""
+            className="sidebar-game-thumb"
+          />
+        ) : (
+          <div className="sidebar-game-dot">
+            {game.title.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <span className="sidebar-item-text">{game.title}</span>
       </NavLink>
-      {isRouteActive && decks && decks.length > 0 && (
+      {!collapsed && isRouteActive && decks && decks.length > 0 && (
         <div>
           {decks.map((deck) => (
             <NavLink
@@ -52,14 +64,25 @@ export default function Sidebar() {
   });
   const templates = templateData?.templates ?? [];
   const [showCreateGame, setShowCreateGame] = useState(false);
+  const { sidebarCollapsed, setSidebarCollapsed } = useAppStore();
 
   return (
-    <nav className="sidebar">
-      <NavLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div className="sidebar-title">
-          <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span> Cardstock
-        </div>
-      </NavLink>
+    <nav className={`sidebar${sidebarCollapsed ? ' collapsed' : ''}`}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <NavLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="sidebar-title">
+            <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
+            <span className="sidebar-title-text">Cardstock</span>
+          </div>
+        </NavLink>
+        <button
+          className="sidebar-collapse-btn"
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {sidebarCollapsed ? '\u{25B6}' : '\u{25C0}'}
+        </button>
+      </div>
 
       <div className="sidebar-section">
         <div className="sidebar-section-header">
@@ -78,11 +101,12 @@ export default function Sidebar() {
             key={game.id}
             game={game}
             isRouteActive={activeGameId === game.id}
+            collapsed={sidebarCollapsed}
           />
         ))}
 
         {games?.length === 0 && (
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: 'var(--sp-2) var(--sp-3)' }}>
+          <div className="sidebar-empty" style={{ fontSize: 12, color: 'var(--text-muted)', padding: 'var(--sp-2) var(--sp-3)' }}>
             No games yet
           </div>
         )}
@@ -107,11 +131,11 @@ export default function Sidebar() {
               `sidebar-item${isActive ? ' active' : ''}`
             }
           >
-            {t.name}
+            <span className="sidebar-item-text">{t.name}</span>
           </NavLink>
         ))}
         {templates.length === 0 && (
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: 'var(--sp-2) var(--sp-3)' }}>
+          <div className="sidebar-empty" style={{ fontSize: 12, color: 'var(--text-muted)', padding: 'var(--sp-2) var(--sp-3)' }}>
             No templates
           </div>
         )}

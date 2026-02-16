@@ -209,6 +209,16 @@ export default function ExportModal({
         </button>
 
         <ExportProgress job={job} />
+
+        {job?.status === 'complete' && (
+          <button
+            className="secondary"
+            onClick={() => { setJob(null); setExporting(false); }}
+            style={{ alignSelf: 'flex-start' }}
+          >
+            Export Again
+          </button>
+        )}
       </div>
     </div>
   );

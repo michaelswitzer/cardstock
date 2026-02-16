@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDeck } from '../hooks/useDecks';
 import { useGame } from '../hooks/useGames';
 import { useAppStore } from '../stores/appStore';
@@ -7,21 +7,28 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchSheetData, renderPreviewBatch, fetchTemplates } from '../api/client';
 import { buildTabCsvUrl } from '../api/sheetUtils';
 import CardGrid from '../components/CardGrid';
+import DataTable from '../components/DataTable';
 import ExportModal from '../components/ExportModal';
-import CreateDeckModal from '../components/CreateDeckModal';
+
+type DeckTab = 'cards' | 'data';
+type CardStatus = 'green' | 'yellow' | 'red';
 
 export default function DeckView() {
   const { id: gameId, deckId } = useParams<{ id: string; deckId: string }>();
+  const navigate = useNavigate();
   const { data: deck, isLoading: deckLoading } = useDeck(deckId);
   const { data: gameData } = useGame(gameId);
   const { data: templateData } = useQuery({ queryKey: ['templates'], queryFn: fetchTemplates });
-  const templateName = templateData?.templates.find((t) => t.id === deck?.templateId)?.name ?? deck?.templateId;
-  const { deckDataCache, setDeckData, setDeckCardImages } = useAppStore();
+  const template = templateData?.templates.find((t) => t.id === deck?.templateId);
+  const templateName = template?.name ?? deck?.templateId;
+  const { deckDataCache, setDeckData, setDeckCardImages, cardZoom, setCardZoom } = useAppStore();
 
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showExport, setShowExport] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
+  const [activeTab, setActiveTab] = useState<DeckTab>('cards');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedCards, setSelectedCards] = useState<Set<number>>(new Set());
   const renderKey = useRef<number>(0);
 
   const cache = deckId ? deckDataCache[deckId] : undefined;
@@ -33,7 +40,7 @@ export default function DeckView() {
   // Fetch sheet data and render cards when deck loads
   useEffect(() => {
     if (!deck || !gameData || !deckId) return;
-    if (rows.length > 0) return; // Already have data cached
+    if (rows.length > 0) return;
 
     let cancelled = false;
     const load = async () => {
@@ -84,7 +91,6 @@ export default function DeckView() {
       const csvUrl = buildTabCsvUrl(gameData.game.sheetUrl, deck.sheetTabGid);
       const data = await fetchSheetData(csvUrl);
       setDeckData(deckId, data.headers, data.rows);
-      // Clear card images to force re-render
       setDeckCardImages(deckId, [], '');
     } catch (err) {
       console.error('Refresh failed:', err);
@@ -97,20 +103,19 @@ export default function DeckView() {
     return <p style={{ color: 'var(--text-muted)' }}>Loading deck...</p>;
   }
 
-  // Use the first mapped column's value (excluding _cardId) as the card label
+  // Card labels
   const firstMappedColumn = deck
     ? Object.entries(deck.mapping).find(([k, v]) => k !== '_cardId' && v)?.[1]
     : undefined;
   const labelColumn = firstMappedColumn || headers[0];
   const baseLabels = rows.map((row) => (labelColumn ? row[labelColumn] || '' : ''));
 
-  // Card IDs from the _cardId mapping
   const cardIdColumn = deck?.mapping._cardId;
   const cardIds = cardIdColumn
     ? rows.map((row) => row[cardIdColumn] || '')
     : undefined;
 
-  // Prepend card back as the first card if one is set
+  // Card back handling
   const hasCardBack = !!deck.cardBackImage;
   const displayImages = hasCardBack && cardImages.length > 0
     ? [`/api/games/${gameId}/images/thumb/artwork/cardback/${deck.cardBackImage}?w=250&h=350`, ...cardImages]
@@ -119,16 +124,65 @@ export default function DeckView() {
     ? ['Card Back', ...baseLabels]
     : baseLabels;
 
+  // Card status computation
+  const computeCardStatus = (): CardStatus[] | undefined => {
+    if (!template || !deck || rows.length === 0) return undefined;
+    const statuses: CardStatus[] = [];
+
+    if (hasCardBack) {
+      statuses.push('green');
+    }
+
+    for (const row of rows) {
+      const hasAllFields = template.fields.every((f) => {
+        const col = deck.mapping[f.name];
+        return col && row[col];
+      });
+      const hasAllImages = template.imageSlots.every((s) => {
+        const col = deck.mapping[s.name];
+        return col && row[col];
+      });
+
+      if (hasAllFields && hasAllImages) {
+        statuses.push('green');
+      } else if (hasAllFields || hasAllImages) {
+        statuses.push('yellow');
+      } else {
+        statuses.push('red');
+      }
+    }
+    return statuses;
+  };
+
+  const cardStatus = cardImages.length > 0 ? computeCardStatus() : undefined;
+
+  const toggleSelectionMode = () => {
+    if (selectionMode) {
+      setSelectionMode(false);
+      setSelectedCards(new Set());
+    } else {
+      setSelectionMode(true);
+    }
+  };
+
+  const selectAll = () => {
+    setSelectedCards(new Set(displayImages.map((_, i) => i)));
+  };
+
+  const selectNone = () => {
+    setSelectedCards(new Set());
+  };
+
+  const zoomOptions = [
+    { value: 160 as const, label: 'S' },
+    { value: 240 as const, label: 'M' },
+    { value: 360 as const, label: 'L' },
+  ];
+
   return (
-    <div>
+    <div style={{ flex: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-5)' }}>
         <div>
-          {gameData && (
-            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 'var(--sp-1)' }}>
-              <Link to={`/games/${gameId}`} style={{ color: 'var(--text-muted)' }}>{gameData.game.title}</Link>
-              {' / '}
-            </p>
-          )}
           <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{deck.name}</h1>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Sheet: {deck.sheetTabName} &middot; Template: {templateName}
@@ -138,7 +192,7 @@ export default function DeckView() {
         <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
           <button
             className="secondary"
-            onClick={() => setShowEdit(true)}
+            onClick={() => navigate(`/games/${gameId}/decks/${deckId}/edit`)}
           >
             Edit
           </button>
@@ -157,20 +211,96 @@ export default function DeckView() {
         </div>
       </div>
 
-      {loading && (
-        <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-          {rows.length > 0 ? `Rendering ${rows.length} cards...` : 'Loading sheet data...'}
-        </p>
+      {/* Tab bar */}
+      <div className="tab-bar">
+        <button
+          className={activeTab === 'cards' ? 'active' : ''}
+          onClick={() => setActiveTab('cards')}
+        >
+          Cards {cardImages.length > 0 && `(${rows.length})`}
+        </button>
+        <button
+          className={activeTab === 'data' ? 'active' : ''}
+          onClick={() => setActiveTab('data')}
+        >
+          Data {rows.length > 0 && `(${rows.length})`}
+        </button>
+      </div>
+
+      {activeTab === 'cards' && (
+        <>
+          {loading && (
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 'var(--sp-3)' }}>
+              {rows.length > 0 ? `Rendering ${rows.length} cards...` : 'Loading sheet data...'}
+            </p>
+          )}
+
+          {!loading && cardImages.length > 0 && (
+            <>
+              <div className="card-grid-toolbar">
+                <div className="zoom-presets">
+                  {zoomOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={cardZoom === opt.value ? 'active' : ''}
+                      onClick={() => setCardZoom(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  className={selectionMode ? 'primary sm' : 'secondary sm'}
+                  onClick={toggleSelectionMode}
+                >
+                  {selectionMode ? `Selected (${selectedCards.size})` : 'Select'}
+                </button>
+
+                {selectionMode && (
+                  <>
+                    <button className="secondary sm" onClick={selectAll}>All</button>
+                    <button className="secondary sm" onClick={selectNone}>None</button>
+                  </>
+                )}
+              </div>
+
+              <CardGrid
+                cardImages={displayImages}
+                cardLabels={cardLabels}
+                cardIds={cardIds}
+                rawLabelCount={hasCardBack ? 1 : 0}
+                cardZoom={cardZoom}
+                selectionMode={selectionMode}
+                selectedCards={selectedCards}
+                onSelectionChange={setSelectedCards}
+                cardStatus={cardStatus}
+              />
+            </>
+          )}
+
+          {!loading && cardImages.length === 0 && rows.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '60px var(--sp-5)', color: 'var(--text-muted)' }}>
+              <p>No card data loaded. Click Refresh to load from the sheet.</p>
+            </div>
+          )}
+        </>
       )}
 
-      {!loading && cardImages.length > 0 && (
-        <CardGrid cardImages={displayImages} cardLabels={cardLabels} cardIds={cardIds} rawLabelCount={hasCardBack ? 1 : 0} />
-      )}
-
-      {!loading && cardImages.length === 0 && rows.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px var(--sp-5)', color: 'var(--text-muted)' }}>
-          <p>No card data loaded. Click Refresh to load from the sheet.</p>
-        </div>
+      {activeTab === 'data' && (
+        <>
+          {rows.length > 0 ? (
+            <DataTable
+              headers={headers}
+              rows={rows}
+              highlightedColumns={Object.values(deck.mapping).filter(Boolean) as string[]}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', padding: '60px var(--sp-5)', color: 'var(--text-muted)' }}>
+              <p>No data loaded yet. Click Refresh to load from the sheet.</p>
+            </div>
+          )}
+        </>
       )}
 
       {showExport && (
@@ -183,16 +313,6 @@ export default function DeckView() {
           mapping={deck.mapping}
           cardBackImage={deck.cardBackImage}
           gameId={gameId}
-        />
-      )}
-
-      {showEdit && gameId && (
-        <CreateDeckModal
-          open={showEdit}
-          onClose={() => setShowEdit(false)}
-          gameId={gameId}
-          sheetUrl={gameData?.game.sheetUrl ?? ''}
-          existingDeck={deck}
         />
       )}
     </div>

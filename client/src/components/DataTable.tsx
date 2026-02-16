@@ -4,10 +4,12 @@ interface DataTableProps {
   headers: string[];
   rows: CardData[];
   maxRows?: number;
+  highlightedColumns?: string[];
 }
 
-export default function DataTable({ headers, rows, maxRows = 50 }: DataTableProps) {
+export default function DataTable({ headers, rows, maxRows = 50, highlightedColumns }: DataTableProps) {
   const displayRows = rows.slice(0, maxRows);
+  const highlighted = new Set(highlightedColumns);
 
   return (
     <div style={{ overflowX: 'auto', maxHeight: 400, overflowY: 'auto', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
@@ -16,7 +18,12 @@ export default function DataTable({ headers, rows, maxRows = 50 }: DataTableProp
           <tr>
             <th>#</th>
             {headers.map((h) => (
-              <th key={h}>{h}</th>
+              <th
+                key={h}
+                style={highlighted.has(h) ? { color: 'var(--primary)' } : undefined}
+              >
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
@@ -25,7 +32,12 @@ export default function DataTable({ headers, rows, maxRows = 50 }: DataTableProp
             <tr key={i}>
               <td style={{ color: 'var(--text-muted)' }}>{i + 1}</td>
               {headers.map((h) => (
-                <td key={h}>{row[h] ?? ''}</td>
+                <td
+                  key={h}
+                  style={highlighted.has(h) ? { background: 'var(--primary-subtle)' } : undefined}
+                >
+                  {row[h] ?? ''}
+                </td>
               ))}
             </tr>
           ))}

@@ -4,9 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useGame, useDeleteGame, useUpdateGame } from '../hooks/useGames';
 import { useDeleteDeck } from '../hooks/useDecks';
 import { fetchCovers, fetchTemplates } from '../api/client';
-import CreateDeckModal from '../components/CreateDeckModal';
 import ExportModal from '../components/ExportModal';
-import type { Deck } from '@cardmaker/shared';
+import AssetBrowser from '../components/AssetBrowser';
 
 export default function GameView() {
   const { id } = useParams<{ id: string }>();
@@ -16,14 +15,13 @@ export default function GameView() {
   const updateGame = useUpdateGame();
   const deleteDeck = useDeleteDeck();
 
-  const [showCreateDeck, setShowCreateDeck] = useState(false);
-  const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editSheetUrl, setEditSheetUrl] = useState('');
   const [editCoverImage, setEditCoverImage] = useState('');
+  const [showAssetBrowser, setShowAssetBrowser] = useState(false);
   const { data: imageData } = useQuery({
     queryKey: ['covers', id],
     queryFn: () => fetchCovers(id!),
@@ -92,17 +90,22 @@ export default function GameView() {
               />
               <div>
                 <label htmlFor="game-cover" className="form-label">Cover Image</label>
-                <select
-                  id="game-cover"
-                  value={editCoverImage}
-                  onChange={(e) => setEditCoverImage(e.target.value)}
-                  style={{ width: '100%' }}
-                >
-                  <option value="">None</option>
-                  {imageData?.images.map((img) => (
-                    <option key={img} value={img}>{img}</option>
-                  ))}
-                </select>
+                <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+                  <select
+                    id="game-cover"
+                    value={editCoverImage}
+                    onChange={(e) => setEditCoverImage(e.target.value)}
+                    style={{ flex: 1 }}
+                  >
+                    <option value="">None</option>
+                    {imageData?.images.map((img) => (
+                      <option key={img} value={img}>{img}</option>
+                    ))}
+                  </select>
+                  <button className="secondary sm" onClick={() => setShowAssetBrowser(true)}>
+                    Browse
+                  </button>
+                </div>
               </div>
               <div>
                 <label htmlFor="game-sheet-url" className="form-label">Google Sheet URL</label>
@@ -160,7 +163,7 @@ export default function GameView() {
       {/* Deck list */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-3)' }}>
         <h2>Decks</h2>
-        <button className="secondary" onClick={() => { setEditingDeck(null); setShowCreateDeck(true); }}>
+        <button className="secondary" onClick={() => navigate(`/games/${game.id}/decks/new`)}>
           New Deck
         </button>
       </div>
@@ -210,8 +213,7 @@ export default function GameView() {
                 className="secondary sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setEditingDeck(deck);
-                  setShowCreateDeck(true);
+                  navigate(`/games/${game.id}/decks/${deck.id}/edit`);
                 }}
               >
                 Edit
@@ -223,7 +225,7 @@ export default function GameView() {
                   navigate(`/games/${game.id}/decks/${deck.id}`);
                 }}
               >
-                Export
+                View
               </button>
               <button
                 className="danger sm"
@@ -239,19 +241,25 @@ export default function GameView() {
         </div>
       )}
 
-      <CreateDeckModal
-        open={showCreateDeck}
-        onClose={() => { setShowCreateDeck(false); setEditingDeck(null); }}
-        gameId={game.id}
-        sheetUrl={game.sheetUrl}
-        existingDeck={editingDeck}
-      />
-
       {showExport && (
         <ExportModal
           open={showExport}
           onClose={() => setShowExport(false)}
           gameId={game.id}
+        />
+      )}
+
+      {showAssetBrowser && id && (
+        <AssetBrowser
+          gameId={id}
+          category="covers"
+          onCategoryChange={() => {}}
+          onSelect={(filename) => {
+            setEditCoverImage(filename);
+            setShowAssetBrowser(false);
+          }}
+          onClose={() => setShowAssetBrowser(false)}
+          selectedValue={editCoverImage}
         />
       )}
     </div>
