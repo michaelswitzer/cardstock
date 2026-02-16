@@ -2,7 +2,6 @@
 name: dev
 description: Start the CardMaker development environment (server + client)
 disable-model-invocation: true
-allowed-tools: Bash
 argument-hint: "[start|stop|restart|electron]"
 ---
 
