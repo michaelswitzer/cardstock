@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useGames } from '../hooks/useGames';
 import { useDecks } from '../hooks/useDecks';
-import { fetchTemplates } from '../api/client';
 import { useAppStore } from '../stores/appStore';
 import CreateGameModal from './CreateGameModal';
 import type { Game } from '@cardmaker/shared';
@@ -57,34 +55,26 @@ export default function Sidebar() {
   const gameMatch = location.pathname.match(/^\/games\/([^/]+)/);
   const activeGameId = gameMatch?.[1];
   const { data: games } = useGames();
-  const navigate = useNavigate();
-  const { data: templateData } = useQuery({
-    queryKey: ['templates'],
-    queryFn: fetchTemplates,
-  });
-  const templates = templateData?.templates ?? [];
   const [showCreateGame, setShowCreateGame] = useState(false);
   const { sidebarCollapsed, setSidebarCollapsed } = useAppStore();
 
   return (
     <nav className={`sidebar${sidebarCollapsed ? ' collapsed' : ''}`}>
       <div className="sidebar-title">
-        <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
-        <span className="sidebar-title-text">Cardstock</span>
+        <NavLink to="/" className="sidebar-title-link">
+          <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
+          <span className="sidebar-title-text">Cardstock</span>
+        </NavLink>
+        <button
+          className="sidebar-add-btn"
+          onClick={() => setShowCreateGame(true)}
+          title="New Game"
+        >
+          +
+        </button>
       </div>
 
-      <div className="sidebar-section">
-        <div className="sidebar-section-header">
-          <NavLink to="/" className="sidebar-section-link"><h3>{'\u{2660}'} Games</h3></NavLink>
-          <button
-            className="sidebar-add-btn"
-            onClick={() => setShowCreateGame(true)}
-            title="New Game"
-          >
-            +
-          </button>
-        </div>
-
+      <div className="sidebar-game-list">
         {games?.map((game) => (
           <SidebarGame
             key={game.id}
@@ -101,36 +91,15 @@ export default function Sidebar() {
         )}
       </div>
 
-      <div className="sidebar-section">
-        <div className="sidebar-section-header">
-          <NavLink to="/templates" className="sidebar-section-link"><h3>{'\u{2727}'} Templates</h3></NavLink>
-          <button
-            className="sidebar-add-btn"
-            onClick={() => navigate('/templates/new')}
-            title="New Template"
-          >
-            +
-          </button>
-        </div>
-        {templates.map((t) => (
-          <NavLink
-            key={t.id}
-            to={`/templates/${t.id}`}
-            className={({ isActive }) =>
-              `sidebar-item${isActive ? ' active' : ''}`
-            }
-          >
-            <span className="sidebar-item-text">{t.name}</span>
-          </NavLink>
-        ))}
-        {templates.length === 0 && (
-          <div className="sidebar-empty" style={{ fontSize: 12, color: 'var(--text-muted)', padding: 'var(--sp-2) var(--sp-3)' }}>
-            No templates
-          </div>
-        )}
-      </div>
-
       <div className="sidebar-bottom">
+        <NavLink
+          to="/templates"
+          className={({ isActive }) =>
+            `sidebar-utility-link${isActive ? ' active' : ''}`
+          }
+        >
+          <span className="sidebar-item-text">Card Templates</span>
+        </NavLink>
         <button
           className="sidebar-collapse-btn"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}

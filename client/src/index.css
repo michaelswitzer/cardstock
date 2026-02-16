@@ -300,8 +300,8 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  overflow-y: auto;
   overflow-x: hidden;
+  overflow-y: hidden;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -338,6 +338,11 @@ a:hover {
   height: 28px;
 }
 
+.sidebar.collapsed .sidebar-utility-link {
+  justify-content: center;
+  padding: var(--sp-2);
+}
+
 .sidebar-title {
   font-family: var(--font-heading);
   font-size: var(--text-xl);
@@ -346,6 +351,15 @@ a:hover {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  justify-content: space-between;
+}
+
+.sidebar-title-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  text-decoration: none;
+  color: inherit;
 }
 
 .sidebar-title-text {
@@ -459,9 +473,44 @@ a:hover {
   color: var(--primary);
 }
 
+.sidebar-game-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  flex: 1;
+  overflow-y: auto;
+}
+
 .sidebar-bottom {
   margin-top: auto;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: var(--sp-3);
+}
+
+.sidebar-utility-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.1s ease, background 0.1s ease;
+}
+
+.sidebar-utility-link:hover {
+  color: var(--text);
+  background: var(--surface-light);
+}
+
+.sidebar-utility-link.active {
+  color: var(--primary);
+  background: var(--primary-subtle);
 }
 
 .sidebar-collapse-btn {
@@ -1014,11 +1063,16 @@ button.danger:hover {
 .titlebar-drag-region {
   position: fixed;
   top: 0;
-  left: 0;
+  left: var(--sidebar-width);
   right: 0;
   height: var(--titlebar-height);
   -webkit-app-region: drag;
   z-index: 98;
+  transition: left 0.25s ease;
+}
+
+.sidebar.collapsed ~ .main-content .titlebar-drag-region {
+  left: var(--sidebar-collapsed-width);
 }
 
 .window-controls {

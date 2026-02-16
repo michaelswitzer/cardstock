@@ -206,7 +206,12 @@ export default function GameView() {
               >
                 <div style={{ fontWeight: 600 }}>{deck.name}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  Sheet: {deck.sheetTabName} &middot; Template: {templateNames.get(deck.templateId) ?? deck.templateId}
+                  Sheet: {deck.sheetTabName} &middot; Template:{' '}
+                  <a
+                    href={`/templates/${deck.templateId}`}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/templates/${deck.templateId}`); }}
+                    style={{ color: 'var(--primary)', textDecoration: 'none' }}
+                  >{templateNames.get(deck.templateId) ?? deck.templateId}</a>
                 </div>
               </Link>
               <button

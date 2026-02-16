@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDeck } from '../hooks/useDecks';
 import { useGame } from '../hooks/useGames';
 import { useAppStore } from '../stores/appStore';
@@ -136,7 +136,8 @@ export default function DeckView() {
         <div>
           <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{deck.name}</h1>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            Sheet: {deck.sheetTabName} &middot; Template: {templateName}
+            Sheet: {deck.sheetTabName} &middot; Template:{' '}
+            <Link to={`/templates/${deck.templateId}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>{templateName}</Link>
             {deck.cardBackImage && <> &middot; Card Back: {deck.cardBackImage}</>}
           </p>
         </div>

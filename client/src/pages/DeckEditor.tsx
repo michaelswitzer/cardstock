@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useCreateDeck, useUpdateDeck, useDeck } from '../hooks/useDecks';
 import { useGame } from '../hooks/useGames';
@@ -250,17 +250,29 @@ export default function DeckEditor() {
 
         <div>
           <label htmlFor="deck-template" className="form-label">Template *</label>
-          <select
-            id="deck-template"
-            value={templateId}
-            onChange={(e) => { setTemplateId(e.target.value); setMapping({}); }}
-            style={{ width: '100%' }}
-          >
-            <option value="">Select a template</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
+            <select
+              id="deck-template"
+              value={templateId}
+              onChange={(e) => { setTemplateId(e.target.value); setMapping({}); }}
+              style={{ flex: 1 }}
+            >
+              <option value="">Select a template</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+            {templateId && (
+              <Link
+                to={`/templates/${templateId}`}
+                className="secondary sm"
+                style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
+                title="View template"
+              >
+                View
+              </Link>
+            )}
+          </div>
         </div>
 
         <div>
