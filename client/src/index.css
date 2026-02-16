@@ -458,6 +458,11 @@ a:hover {
   color: var(--primary);
 }
 
+.sidebar-bottom {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
 .sidebar-collapse-btn {
   background: none;
   border: none;
@@ -1133,6 +1138,10 @@ button.danger:hover {
 }
 
 /* Electron-mode layout adjustments */
+
+body.electron .sidebar {
+  z-index: 99;
+}
 
 body.electron .sidebar > div:first-child {
   -webkit-app-region: drag;

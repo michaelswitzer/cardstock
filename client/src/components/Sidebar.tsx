@@ -68,20 +68,9 @@ export default function Sidebar() {
 
   return (
     <nav className={`sidebar${sidebarCollapsed ? ' collapsed' : ''}`}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <NavLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="sidebar-title">
-            <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
-            <span className="sidebar-title-text">Cardstock</span>
-          </div>
-        </NavLink>
-        <button
-          className="sidebar-collapse-btn"
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {sidebarCollapsed ? '\u{25B6}' : '\u{25C0}'}
-        </button>
+      <div className="sidebar-title">
+        <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
+        <span className="sidebar-title-text">Cardstock</span>
       </div>
 
       <div className="sidebar-section">
@@ -139,6 +128,16 @@ export default function Sidebar() {
             No templates
           </div>
         )}
+      </div>
+
+      <div className="sidebar-bottom">
+        <button
+          className="sidebar-collapse-btn"
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {sidebarCollapsed ? '\u{25B6}' : '\u{25C0}'}
+        </button>
       </div>
 
       <CreateGameModal
