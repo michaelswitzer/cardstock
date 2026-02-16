@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useGames } from '../hooks/useGames';
 import { useDecks } from '../hooks/useDecks';
 import { useAppStore } from '../stores/appStore';
-import CreateGameModal from './CreateGameModal';
 import type { Game } from '@cardmaker/shared';
 
 function SidebarGame({ game, isRouteActive, collapsed }: { game: Game; isRouteActive: boolean; collapsed: boolean }) {
@@ -55,7 +53,6 @@ export default function Sidebar() {
   const gameMatch = location.pathname.match(/^\/games\/([^/]+)/);
   const activeGameId = gameMatch?.[1];
   const { data: games } = useGames();
-  const [showCreateGame, setShowCreateGame] = useState(false);
   const { sidebarCollapsed, setSidebarCollapsed } = useAppStore();
 
   return (
@@ -65,13 +62,6 @@ export default function Sidebar() {
           <span style={{ color: 'var(--primary)' }}>{'\u{1F0CF}'}</span>
           <span className="sidebar-title-text">Cardstock</span>
         </NavLink>
-        <button
-          className="sidebar-add-btn"
-          onClick={() => setShowCreateGame(true)}
-          title="New Game"
-        >
-          +
-        </button>
       </div>
 
       <div className="sidebar-game-list">
@@ -109,10 +99,6 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <CreateGameModal
-        open={showCreateGame}
-        onClose={() => setShowCreateGame(false)}
-      />
     </nav>
   );
 }

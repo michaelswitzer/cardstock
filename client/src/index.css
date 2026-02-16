@@ -358,8 +358,16 @@ a:hover {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius);
   text-decoration: none;
   color: inherit;
+  transition: background 0.1s ease;
+}
+
+.sidebar-title-link:hover {
+  background: var(--surface-light);
+  text-decoration: none;
 }
 
 .sidebar-title-text {
@@ -458,21 +466,6 @@ a:hover {
   font-size: 12px;
 }
 
-.sidebar-add-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 16px;
-  padding: 0 var(--sp-1);
-  line-height: 1;
-  transition: color 0.1s ease;
-}
-
-.sidebar-add-btn:hover {
-  color: var(--primary);
-}
-
 .sidebar-game-list {
   display: flex;
   flex-direction: column;
@@ -506,6 +499,7 @@ a:hover {
 .sidebar-utility-link:hover {
   color: var(--text);
   background: var(--surface-light);
+  text-decoration: none;
 }
 
 .sidebar-utility-link.active {
