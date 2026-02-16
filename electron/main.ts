@@ -252,7 +252,14 @@ app.whenReady().then(async () => {
     // 5. Create main window
     Menu.setApplicationMenu(null);
     mainWindow = createMainWindow();
-    mainWindow.loadURL(`http://localhost:${serverPort}`);
+
+    // In dev mode, load from Vite dev server for HMR (hot reload on client changes).
+    // Vite proxies /api, /output, /games to the Express server automatically.
+    // In production, Express serves the built client as static files.
+    const loadUrl = isDev
+      ? 'http://localhost:5173'
+      : `http://localhost:${serverPort}`;
+    mainWindow.loadURL(loadUrl);
 
     mainWindow.once('ready-to-show', () => {
       splashWindow?.close();

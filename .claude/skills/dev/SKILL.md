@@ -31,14 +31,22 @@ Manage the CardMaker Electron app. The argument determines the action:
    cd /c/Users/mikes/Documents/CardMaker && npm run build:electron
    ```
 
-3. Launch Electron in dev mode as a background process:
+3. Start the Vite dev server as a background process (provides HMR for client changes):
+   ```bash
+   cd /c/Users/mikes/Documents/CardMaker/client && npx vite
+   ```
+
+4. Wait for Vite to be listening on port 5173.
+
+5. Launch Electron in dev mode as a background process:
    ```bash
    cd /c/Users/mikes/Documents/CardMaker && npx electron .
    ```
 
 Report the status when done.
 
-## Important Notes
-- Always use Electron mode. Never start separate server/client dev processes.
-- Electron runs the Express server in-process (no separate node server needed).
-- No Vite dev server is needed — Electron serves the built client as static files.
+## Architecture Notes
+- Electron runs the Express server in-process on port 3001 (handles data folder, env vars).
+- Vite dev server on port 5173 provides HMR — client changes hot-reload instantly.
+- In dev mode, Electron window loads from Vite (localhost:5173), which proxies `/api`, `/output`, and `/games` to Express on port 3001.
+- Only server code changes require a full restart. Client changes are reflected immediately via HMR.

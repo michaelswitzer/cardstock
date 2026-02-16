@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:3001',
       '/output': 'http://localhost:3001',
+      '/games': 'http://localhost:3001',
     },
   },
 });
