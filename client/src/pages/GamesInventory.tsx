@@ -9,6 +9,9 @@ declare global {
       getDataFolder: () => Promise<string>;
       pickDataFolder: () => Promise<string | null>;
       restartApp: () => Promise<void>;
+      minimizeWindow: () => void;
+      maximizeWindow: () => void;
+      closeWindow: () => void;
     };
   }
 }

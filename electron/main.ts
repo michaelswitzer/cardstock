@@ -88,6 +88,24 @@ ipcMain.handle('restart-app', () => {
   app.exit(0);
 });
 
+// --- Window controls (frameless) ---
+
+ipcMain.on('window-minimize', () => {
+  mainWindow?.minimize();
+});
+
+ipcMain.on('window-maximize', () => {
+  if (mainWindow?.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow?.maximize();
+  }
+});
+
+ipcMain.on('window-close', () => {
+  mainWindow?.close();
+});
+
 // --- Splash window ---
 
 function createSplash(): BrowserWindow {
@@ -164,12 +182,18 @@ async function startServer(): Promise<void> {
 // --- Main window ---
 
 function createMainWindow(): BrowserWindow {
+  const iconPath = isDev
+    ? path.join(PROJECT_ROOT, 'electron', 'icon.png')
+    : path.join(__dirname, 'icon.png');
+
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 900,
     minHeight: 600,
     title: 'Cardstock',
+    icon: iconPath,
+    frame: false,
     show: false,
     webPreferences: {
       preload: path.join(PROJECT_ROOT, 'electron', 'preload.js'),

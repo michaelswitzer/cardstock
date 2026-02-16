@@ -60,6 +60,7 @@
   /* Sidebar */
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 56px;
+  --titlebar-height: 36px;
 }
 
 * {
@@ -1083,4 +1084,65 @@ button.danger:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border);
+}
+
+/* Frameless window controls (Electron only) */
+
+.titlebar-drag-region {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-height);
+  -webkit-app-region: drag;
+  z-index: 98;
+}
+
+.window-controls {
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  z-index: 100;
+  -webkit-app-region: no-drag;
+}
+
+.window-control-btn {
+  width: 46px;
+  height: var(--titlebar-height);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.window-control-btn:hover {
+  background: var(--surface-light);
+  color: var(--text);
+}
+
+.window-control-close:hover {
+  background: var(--accent-rose);
+  color: white;
+}
+
+/* Electron-mode layout adjustments */
+
+body.electron .sidebar > div:first-child {
+  -webkit-app-region: drag;
+}
+
+body.electron .sidebar a,
+body.electron .sidebar button {
+  -webkit-app-region: no-drag;
+}
+
+body.electron .main-content {
+  padding-top: calc(var(--titlebar-height) + var(--sp-3));
 }
