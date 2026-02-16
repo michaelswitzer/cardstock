@@ -1060,6 +1060,7 @@ button.danger:hover {
   left: var(--sidebar-width);
   right: 0;
   height: var(--titlebar-height);
+  background: var(--bg);
   -webkit-app-region: drag;
   z-index: 98;
   transition: left 0.25s ease;
@@ -1075,6 +1076,7 @@ button.danger:hover {
   right: 0;
   display: flex;
   z-index: 100;
+  background: var(--bg);
   -webkit-app-region: no-drag;
 }
 

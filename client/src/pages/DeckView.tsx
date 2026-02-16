@@ -133,7 +133,7 @@ export default function DeckView() {
 
   return (
     <div style={{ flex: 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-5)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--sp-5)' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-1)' }}>
             <h1 style={{ fontSize: 26 }}>{deck.name}</h1>
@@ -159,6 +159,11 @@ export default function DeckView() {
           >
             Edit
           </button>
+          {cardImages.length > 0 && (
+            <button className="primary" onClick={() => setShowExport(true)}>
+              Export
+            </button>
+          )}
           <button
             className="danger"
             onClick={() => {
@@ -170,11 +175,6 @@ export default function DeckView() {
           >
             Delete
           </button>
-          {cardImages.length > 0 && (
-            <button className="primary" onClick={() => setShowExport(true)}>
-              Export
-            </button>
-          )}
         </div>
       </div>
 
