@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useDeck } from '../hooks/useDecks';
+import { useDeck, useDeleteDeck } from '../hooks/useDecks';
 import { useGame } from '../hooks/useGames';
 import { useAppStore } from '../stores/appStore';
 import { useQuery } from '@tanstack/react-query';
@@ -21,6 +21,7 @@ export default function DeckView() {
   const template = templateData?.templates.find((t) => t.id === deck?.templateId);
   const templateName = template?.name ?? deck?.templateId;
   const { deckDataCache, setDeckData, setDeckCardImages, cardZoom, setCardZoom } = useAppStore();
+  const deleteDeck = useDeleteDeck();
 
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);

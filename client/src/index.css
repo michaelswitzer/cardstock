@@ -1,25 +1,25 @@
 :root {
-  /* Backgrounds (warm) */
-  --bg: #1d1b20;
-  --surface: #27252b;
-  --surface-light: #312f36;
-  --surface-raised: #3b3941;
-  --border: #3e3c44;
+  /* Backgrounds (cool neutral) */
+  --bg: #191b1f;
+  --surface: #22252a;
+  --surface-light: #2c2f36;
+  --surface-raised: #363940;
+  --border: #3a3d45;
 
-  /* Primary accent (amber) */
-  --primary: #d98c3b;
-  --primary-hover: #c47a2e;
-  --primary-subtle: rgba(217, 140, 59, 0.10);
-  --primary-glow: rgba(217, 140, 59, 0.25);
+  /* Primary accent (slate blue) */
+  --primary: #5b8af5;
+  --primary-hover: #4a78e0;
+  --primary-subtle: rgba(91, 138, 245, 0.10);
+  --primary-glow: rgba(91, 138, 245, 0.25);
 
   /* Secondary accents */
   --accent-teal: #4a9e8e;
-  --accent-rose: #c4566a;
+  --accent-rose: #e06379;
 
   /* Semantic */
   --success: #4caf7a;
   --warning: #e0a040;
-  --error: #c4566a;
+  --error: #e06379;
 
   /* Text */
   --text: #d8d8da;
@@ -43,14 +43,14 @@
   --sp-6: 32px;
   --sp-8: 48px;
 
-  /* Radii (warmer, rounder) */
+  /* Radii */
   --radius: 8px;
   --radius-lg: 16px;
 
-  /* Shadows (amber-tinted) */
-  --shadow-sm: 0 1px 3px rgba(20, 16, 12, 0.4);
-  --shadow-md: 0 4px 16px rgba(20, 16, 12, 0.5);
-  --shadow-lg: 0 8px 32px rgba(20, 16, 12, 0.6);
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(10, 12, 18, 0.4);
+  --shadow-md: 0 4px 16px rgba(10, 12, 18, 0.5);
+  --shadow-lg: 0 8px 32px rgba(10, 12, 18, 0.6);
 
   /* Fonts */
   --font-heading: 'Urbanist', sans-serif;

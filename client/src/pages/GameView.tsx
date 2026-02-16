@@ -163,7 +163,7 @@ export default function GameView() {
       {/* Deck list */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-3)' }}>
         <h2>Decks</h2>
-        <button className="secondary" onClick={() => navigate(`/games/${game.id}/decks/new`)}>
+        <button className="primary" onClick={() => navigate(`/games/${game.id}/decks/new`)}>
           New Deck
         </button>
       </div>
@@ -222,15 +222,6 @@ export default function GameView() {
                 }}
               >
                 Edit
-              </button>
-              <button
-                className="primary sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/games/${game.id}/decks/${deck.id}`);
-                }}
-              >
-                View
               </button>
               <button
                 className="danger sm"

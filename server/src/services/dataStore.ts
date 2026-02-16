@@ -310,8 +310,6 @@ interface OldDefaults {
 }
 
 export async function migrateDefaults(): Promise<void> {
-  await fs.mkdir(GAMES_DIR, { recursive: true });
-
   // First: migrate .cardmaker-defaults.json → .cardmaker-data.json (old chain)
   try {
     await fs.access(DATA_PATH);
