@@ -74,8 +74,6 @@ export async function initGameIndex(): Promise<void> {
   gameIndex.clear();
   deckIndex.clear();
 
-  await fs.mkdir(GAMES_DIR, { recursive: true });
-
   let entries: import('fs').Dirent[];
   try {
     entries = await fs.readdir(GAMES_DIR, { withFileTypes: true });
