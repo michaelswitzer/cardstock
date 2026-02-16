@@ -23,8 +23,27 @@ server/templates/*
 
 # Local data
 .cardmaker-data.json
+.cardmaker-data.json.bak
 .cardmaker-defaults.json
 .cardmaker-defaults.json.bak
+
+# Chrome for Testing (downloaded by scripts/download-chrome.js)
+chrome/
+
+# Electron
+electron/dist/
+client-dist/
+dist-electron/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Vite build artifacts
+client/vite.config.js
+client/vite.config.d.ts
+
+# Claude Code local settings
+.claude/settings.local.json
 
 # IDE
 .vscode/
