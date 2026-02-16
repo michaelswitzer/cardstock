@@ -4,7 +4,8 @@ import { fileURLToPath } from 'url';
 import type { CardData, CardTemplate, FieldMapping } from '@cardmaker/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const TEMPLATES_DIR = path.resolve(__dirname, '..', '..', 'templates');
+export const TEMPLATES_DIR = process.env.CARDMAKER_TEMPLATES_DIR
+  ?? path.resolve(__dirname, '..', '..', 'templates');
 
 export async function listTemplates(): Promise<CardTemplate[]> {
   const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true });

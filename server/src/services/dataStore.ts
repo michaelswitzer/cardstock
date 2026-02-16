@@ -5,7 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import type { AppData, Game, Deck, GameFile, StoredDeck, FieldMapping } from '@cardmaker/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..');
+const PROJECT_ROOT = process.env.CARDMAKER_DATA_ROOT
+  ?? path.resolve(__dirname, '..', '..', '..');
 const GAMES_DIR = path.join(PROJECT_ROOT, 'games');
 const DATA_PATH = path.join(PROJECT_ROOT, '.cardmaker-data.json');
 const OLD_DEFAULTS_PATH = path.join(PROJECT_ROOT, '.cardmaker-defaults.json');

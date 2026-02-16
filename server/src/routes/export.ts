@@ -14,7 +14,8 @@ import { getGame, getGameSlug, listDecks, GAMES_DIR } from '../services/dataStor
 import { buildTabCsvUrl, fetchSheetData } from '../services/googleSheets.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUTPUT_DIR = path.resolve(__dirname, '..', '..', '..', 'output');
+const OUTPUT_DIR = process.env.CARDMAKER_OUTPUT_DIR
+  ?? path.resolve(__dirname, '..', '..', '..', 'output');
 
 export const exportRouter = Router();
 

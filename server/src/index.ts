@@ -14,7 +14,8 @@ import { warmUp } from './services/renderer.js';
 import { migrateDefaults, initGameIndex } from './services/dataStore.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
+const PROJECT_ROOT = process.env.CARDMAKER_DATA_ROOT
+  ?? path.resolve(__dirname, '..', '..');
 
 const app = express();
 
@@ -26,7 +27,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/games', express.static(path.join(PROJECT_ROOT, 'games')));
 
 // Serve export output files
-app.use('/output', express.static(path.join(PROJECT_ROOT, 'output')));
+const OUTPUT_DIR = process.env.CARDMAKER_OUTPUT_DIR
+  ?? path.join(PROJECT_ROOT, 'output');
+app.use('/output', express.static(OUTPUT_DIR));
+
+// Serve built client in production/Electron mode
+const clientDist = process.env.CARDMAKER_CLIENT_DIST;
+if (clientDist) {
+  app.use(express.static(clientDist));
+}
 
 // API routes
 app.use('/api/sheets', sheetsRouter);
@@ -36,15 +45,26 @@ app.use('/api/templates', templatesRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api', decksRouter);
 
+// SPA fallback — serve index.html for non-API routes when serving client
+if (clientDist) {
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
 // Error handler
 app.use(errorHandler);
+
+export { app };
+
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : SERVER_PORT;
 
 // Migrate old defaults on startup, then start listening
 migrateDefaults()
   .catch((err) => console.warn('Migration check failed:', err.message))
   .then(() => {
-    app.listen(SERVER_PORT, () => {
-      console.log(`Cardstock server running on http://localhost:${SERVER_PORT}`);
+    app.listen(port, () => {
+      console.log(`Cardstock server running on http://localhost:${port}`);
       warmUp().catch((err) => console.warn('Puppeteer warm-up failed:', err.message));
     });
   });

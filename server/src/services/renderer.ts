@@ -1,4 +1,4 @@
-import puppeteer, { type Browser, type Page } from 'puppeteer';
+import puppeteer, { type Browser, type Page } from 'puppeteer-core';
 import sharp from 'sharp';
 import {
   RENDER_SCALE,
@@ -22,6 +22,9 @@ async function getBrowser(): Promise<Browser> {
     browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      ...(process.env.PUPPETEER_EXECUTABLE_PATH
+        ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
+        : {}),
     });
   }
   return browser;
