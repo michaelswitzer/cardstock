@@ -13,12 +13,12 @@ function SidebarGame({ game, isRouteActive, collapsed }: { game: Game; isRouteAc
         to={`/games/${game.id}`}
         end
         className={({ isActive }) =>
-          `sidebar-item${isActive ? ' active' : ''}`
+          `sidebar-item sidebar-game${isActive ? ' active' : ''}`
         }
       >
         {game.coverImage ? (
           <img
-            src={`/api/games/${game.id}/images/thumb/${game.coverImage}?w=40&h=40`}
+            src={`/api/games/${game.id}/images/thumb/${game.coverImage}?w=80&h=80`}
             alt=""
             className="sidebar-game-thumb"
           />
@@ -29,7 +29,7 @@ function SidebarGame({ game, isRouteActive, collapsed }: { game: Game; isRouteAc
         )}
         <span className="sidebar-item-text">{game.title}</span>
       </NavLink>
-      {!collapsed && isRouteActive && decks && decks.length > 0 && (
+      {isRouteActive && decks && decks.length > 0 && (
         <div>
           {decks.map((deck) => (
             <NavLink
@@ -38,8 +38,18 @@ function SidebarGame({ game, isRouteActive, collapsed }: { game: Game; isRouteAc
               className={({ isActive }) =>
                 `sidebar-item sidebar-deck${isActive ? ' active' : ''}`
               }
+              title={collapsed ? deck.name : undefined}
             >
-              {deck.name}
+              {deck.cardBackImage ? (
+                <img
+                  src={`/api/games/${game.id}/images/thumb/artwork/cardback/${deck.cardBackImage}?w=60&h=84`}
+                  alt=""
+                  className="sidebar-deck-thumb"
+                />
+              ) : (
+                <div className="sidebar-deck-dot">{'\u{1F0A0}'}</div>
+              )}
+              <span className="sidebar-item-text">{deck.name}</span>
             </NavLink>
           ))}
         </div>
@@ -81,13 +91,15 @@ export default function Sidebar() {
         )}
       </div>
 
-      <div className="sidebar-bottom">
+      <div className={`sidebar-bottom${sidebarCollapsed ? ' collapsed' : ''}`}>
         <NavLink
           to="/templates"
           className={({ isActive }) =>
             `sidebar-utility-link${isActive ? ' active' : ''}`
           }
+          title="Card Templates"
         >
+          <svg className="sidebar-utility-icon" viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><rect x="1" y="2" width="6" height="8" rx="0.5" strokeWidth="0"/><rect x="5" y="5" width="6" height="8" rx="0.5" opacity="0.5"/><rect x="9" y="2" width="6" height="8" rx="0.5" strokeWidth="0"/></svg>
           <span className="sidebar-item-text">Card Templates</span>
         </NavLink>
         <button

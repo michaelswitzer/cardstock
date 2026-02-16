@@ -318,7 +318,6 @@ a:hover {
 .sidebar.collapsed .sidebar-title-text,
 .sidebar.collapsed .sidebar-section-header h3,
 .sidebar.collapsed .sidebar-item-text,
-.sidebar.collapsed .sidebar-deck,
 .sidebar.collapsed .sidebar-add-btn,
 .sidebar.collapsed .sidebar-empty {
   display: none;
@@ -333,9 +332,18 @@ a:hover {
   justify-content: center;
 }
 
+.sidebar.collapsed .sidebar-game {
+  padding: 2px;
+}
+
 .sidebar.collapsed .sidebar-game-thumb {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
+}
+
+.sidebar.collapsed .sidebar-game-dot {
+  width: 36px;
+  height: 36px;
 }
 
 .sidebar.collapsed .sidebar-utility-link {
@@ -441,29 +449,67 @@ a:hover {
 }
 
 .sidebar-game-thumb {
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .sidebar-game-dot {
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   border-radius: 4px;
   background: var(--surface-light);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 
 .sidebar-deck {
   padding-left: var(--sp-6);
   font-size: 12px;
+}
+
+.sidebar.collapsed .sidebar-deck {
+  padding-left: 0;
+  justify-content: center;
+  padding: var(--sp-1) var(--sp-2);
+}
+
+.sidebar.collapsed .sidebar-deck-thumb {
+  width: 26px;
+  height: 36px;
+}
+
+.sidebar.collapsed .sidebar-deck-dot {
+  width: 26px;
+  height: 36px;
+  font-size: 12px;
+}
+
+.sidebar-deck-thumb {
+  width: 30px;
+  height: 42px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sidebar-deck-dot {
+  width: 30px;
+  height: 42px;
+  border-radius: 3px;
+  background: var(--surface-light);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 .sidebar-game-list {
@@ -482,6 +528,17 @@ a:hover {
   justify-content: space-between;
   border-top: 1px solid var(--border);
   padding-top: var(--sp-3);
+}
+
+.sidebar-bottom.collapsed {
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.sidebar-utility-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
 
 .sidebar-utility-link {
