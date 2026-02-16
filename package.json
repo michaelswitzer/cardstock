@@ -2,6 +2,8 @@
   "name": "cardmaker",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "main": "electron/dist/main.js",
   "workspaces": [
     "shared",
     "server",
@@ -9,9 +11,56 @@
   ],
   "scripts": {
     "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w shared && npm run build -w server && npm run build -w client"
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
+    "build:electron": "npm run build && cd electron && npx tsc && cd .. && node scripts/copy-client-dist.js",
+    "dist": "npm run build:electron && node scripts/download-chrome.js && npx electron-builder --win"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "@puppeteer/browsers": "^2.12.1",
+    "concurrently": "^9.2.1",
+    "electron": "^40.4.1",
+    "electron-builder": "^26.7.0"
+  },
+  "dependencies": {
+    "electron-store": "^11.0.2"
+  },
+  "build": {
+    "appId": "com.cardstock.app",
+    "productName": "Cardstock",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/dist/**/*",
+      "server/dist/**/*",
+      "server/package.json",
+      "shared/dist/**/*",
+      "shared/package.json",
+      "client-dist/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "asarUnpack": [
+      "**/node_modules/sharp/**",
+      "**/node_modules/@img/**"
+    ],
+    "extraResources": [
+      {
+        "from": "server/templates",
+        "to": "templates"
+      },
+      {
+        "from": "chrome",
+        "to": "chrome"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "electron/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
