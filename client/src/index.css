@@ -480,14 +480,7 @@ a:hover {
   padding: var(--sp-1) var(--sp-2);
 }
 
-.sidebar.collapsed .sidebar-deck-thumb {
-  width: 26px;
-  height: 36px;
-}
-
 .sidebar.collapsed .sidebar-deck-dot {
-  width: 26px;
-  height: 36px;
   font-size: 12px;
 }
 
