@@ -1,15 +1,14 @@
 ---
 name: dev
-description: Start the CardMaker development environment (server + client)
+description: Build and launch CardMaker as an Electron desktop app
 disable-model-invocation: true
-argument-hint: "[start|stop|restart|electron]"
+argument-hint: "[start|stop|restart]"
 ---
 
-Manage the CardMaker dev servers. The argument determines the action:
-- `start` (default if no argument): start both servers
-- `stop`: stop both servers
-- `restart`: stop then start both servers
-- `electron`: build and launch the Electron desktop app in dev mode
+Manage the CardMaker Electron app. The argument determines the action:
+- `start` (default if no argument): stop stale processes, build, and launch Electron
+- `stop`: stop all CardMaker processes
+- `restart`: stop then start
 
 ## Stop Procedure
 
@@ -27,35 +26,19 @@ Manage the CardMaker dev servers. The argument determines the action:
 
 1. First run the stop procedure to clear stale processes.
 
-2. Start the server as a background process:
-   ```bash
-   cd /c/Users/mikes/Documents/CardMaker/server && npx tsx src/index.ts
-   ```
-   Wait for it to print "Cardstock server running on http://localhost:3001" before proceeding.
-
-3. Start the client as a background process:
-   ```bash
-   cd /c/Users/mikes/Documents/CardMaker/client && npx vite
-   ```
-
-Report the status of both processes when done.
-
-## Electron Procedure
-
-1. First run the stop procedure to clear stale processes.
-
 2. Build everything:
    ```bash
    cd /c/Users/mikes/Documents/CardMaker && npm run build:electron
    ```
 
-3. Launch Electron in dev mode:
+3. Launch Electron in dev mode as a background process:
    ```bash
    cd /c/Users/mikes/Documents/CardMaker && npx electron .
    ```
 
+Report the status when done.
+
 ## Important Notes
-- Do NOT use `npm run dev` (concurrently) — tsx watch often fails silently under it.
-- Server runs on port 3001, client on port 5173.
-- Client proxies `/api` and `/output` to the server automatically.
-- Electron mode builds all workspaces and launches the desktop app (no separate Vite process needed).
+- Always use Electron mode. Never start separate server/client dev processes.
+- Electron runs the Express server in-process (no separate node server needed).
+- No Vite dev server is needed — Electron serves the built client as static files.
