@@ -135,7 +135,17 @@ export default function DeckView() {
     <div style={{ flex: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-5)' }}>
         <div>
-          <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{deck.name}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-1)' }}>
+            <h1 style={{ fontSize: 26 }}>{deck.name}</h1>
+            <button
+              className="secondary sm"
+              onClick={handleRefresh}
+              disabled={refreshing || loading}
+              title="Refresh data from Google Sheet"
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Sheet: {deck.sheetTabName} &middot; Template:{' '}
             <Link to={`/templates/${deck.templateId}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>{templateName}</Link>
@@ -150,11 +160,15 @@ export default function DeckView() {
             Edit
           </button>
           <button
-            className="secondary"
-            onClick={handleRefresh}
-            disabled={refreshing || loading}
+            className="danger"
+            onClick={() => {
+              if (!confirm(`Delete deck "${deck.name}"? This cannot be undone.`)) return;
+              deleteDeck.mutate(deck.id, {
+                onSuccess: () => navigate(`/games/${gameId}`),
+              });
+            }}
           >
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            Delete
           </button>
           {cardImages.length > 0 && (
             <button className="primary" onClick={() => setShowExport(true)}>
