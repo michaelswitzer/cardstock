@@ -377,6 +377,7 @@ a:hover {
   text-decoration: none;
   color: inherit;
   transition: background 0.1s ease;
+  width: 100%;
 }
 
 .sidebar-title-link:hover {
