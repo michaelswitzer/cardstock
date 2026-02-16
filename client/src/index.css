@@ -205,6 +205,7 @@ th {
 /* Card grid items */
 
 .card-item {
+  position: relative;
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface);
@@ -744,23 +745,6 @@ button.danger:hover {
   background: var(--surface-light);
   color: var(--text);
 }
-
-/* Card status dots */
-
-.card-status-dot {
-  position: absolute;
-  top: var(--sp-2);
-  right: var(--sp-2);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid var(--surface);
-  z-index: 2;
-}
-
-.card-status-dot.green { background: var(--success); }
-.card-status-dot.yellow { background: var(--warning); }
-.card-status-dot.red { background: var(--error); }
 
 /* Lightbox */
 

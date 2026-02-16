@@ -1,14 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 
-type CardStatus = 'green' | 'yellow' | 'red';
-
 interface CardGridProps {
   cardImages: string[];
   cardLabels?: string[];
   cardIds?: string[];
   rawLabelCount?: number;
   cardZoom?: number;
-  cardStatus?: CardStatus[];
 }
 
 export default function CardGrid({
@@ -17,7 +14,6 @@ export default function CardGrid({
   cardIds,
   rawLabelCount = 0,
   cardZoom = 240,
-  cardStatus,
 }: CardGridProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -69,9 +65,6 @@ export default function CardGrid({
             style={{ cursor: 'pointer' }}
             onClick={() => handleCardClick(i)}
           >
-            {cardStatus && cardStatus[i] && (
-              <div className={`card-status-dot ${cardStatus[i]}`} style={{ position: 'absolute' }} />
-            )}
             <img
               src={src}
               alt={getLabel(i)}

@@ -11,7 +11,6 @@ import DataTable from '../components/DataTable';
 import ExportModal from '../components/ExportModal';
 
 type DeckTab = 'cards' | 'data';
-type CardStatus = 'green' | 'yellow' | 'red';
 
 export default function DeckView() {
   const { id: gameId, deckId } = useParams<{ id: string; deckId: string }>();
@@ -125,38 +124,6 @@ export default function DeckView() {
     ? ['Card Back', ...baseLabels]
     : baseLabels;
 
-  // Card status computation
-  const computeCardStatus = (): CardStatus[] | undefined => {
-    if (!template || !deck || rows.length === 0) return undefined;
-    const statuses: CardStatus[] = [];
-
-    if (hasCardBack) {
-      statuses.push('green');
-    }
-
-    for (const row of rows) {
-      const hasAllFields = template.fields.every((f) => {
-        const col = deck.mapping[f.name];
-        return col && row[col];
-      });
-      const hasAllImages = template.imageSlots.every((s) => {
-        const col = deck.mapping[s.name];
-        return col && row[col];
-      });
-
-      if (hasAllFields && hasAllImages) {
-        statuses.push('green');
-      } else if (hasAllFields || hasAllImages) {
-        statuses.push('yellow');
-      } else {
-        statuses.push('red');
-      }
-    }
-    return statuses;
-  };
-
-  const cardStatus = cardImages.length > 0 ? computeCardStatus() : undefined;
-
   const zoomOptions = [
     { value: 160 as const, label: 'S' },
     { value: 240 as const, label: 'M' },
@@ -242,7 +209,6 @@ export default function DeckView() {
                 cardIds={cardIds}
                 rawLabelCount={hasCardBack ? 1 : 0}
                 cardZoom={cardZoom}
-                cardStatus={cardStatus}
               />
             </>
           )}
