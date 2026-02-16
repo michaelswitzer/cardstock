@@ -223,6 +223,20 @@ app.whenReady().then(async () => {
       // Dev mode: templates and client-dist in source tree
       process.env.CARDMAKER_TEMPLATES_DIR = path.join(PROJECT_ROOT, 'server', 'templates');
       process.env.CARDMAKER_CLIENT_DIST = path.join(PROJECT_ROOT, 'client-dist');
+
+      // Dev mode: find Chrome for Testing downloaded by scripts/download-chrome.js
+      if (!process.env.PUPPETEER_EXECUTABLE_PATH) {
+        const chromeDir = path.join(PROJECT_ROOT, 'chrome', 'chrome');
+        if (fs.existsSync(chromeDir)) {
+          const builds = fs.readdirSync(chromeDir);
+          if (builds.length > 0) {
+            const chromePath = path.join(chromeDir, builds[0], 'chrome-win64', 'chrome.exe');
+            if (fs.existsSync(chromePath)) {
+              process.env.PUPPETEER_EXECUTABLE_PATH = chromePath;
+            }
+          }
+        }
+      }
     } else {
       // Production: templates in extraResources
       process.env.CARDMAKER_TEMPLATES_DIR = path.join(process.resourcesPath!, 'templates');
