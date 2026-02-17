@@ -181,6 +181,10 @@ export async function deleteGame(id: string): Promise<void> {
   await api.delete(`/games/${id}`);
 }
 
+export async function openGameFolder(id: string): Promise<void> {
+  await api.post(`/games/${id}/open-folder`);
+}
+
 // --- Decks ---
 
 export async function fetchDecks(gameId: string): Promise<{ decks: Deck[] }> {

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { exec } from 'child_process';
+import path from 'path';
 import {
   listGames,
   createGame,
@@ -6,6 +8,7 @@ import {
   updateGame,
   deleteGame,
   listDecks,
+  GAMES_DIR,
 } from '../services/dataStore.js';
 import { imagesRouter } from './images.js';
 
@@ -76,6 +79,29 @@ gamesRouter.delete('/:id', async (req, res, next) => {
     if (!deleted) {
       res.status(404).json({ error: 'Game not found' });
       return;
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** POST /api/games/:id/open-folder — open game folder in file explorer */
+gamesRouter.post('/:id/open-folder', async (req, res, next) => {
+  try {
+    const game = await getGame(req.params.id);
+    if (!game) {
+      res.status(404).json({ error: 'Game not found' });
+      return;
+    }
+    const folderPath = path.join(GAMES_DIR, game.slug);
+    const platform = process.platform;
+    if (platform === 'win32') {
+      exec(`explorer "${folderPath}"`);
+    } else if (platform === 'darwin') {
+      exec(`open "${folderPath}"`);
+    } else {
+      exec(`xdg-open "${folderPath}"`);
     }
     res.json({ ok: true });
   } catch (err) {

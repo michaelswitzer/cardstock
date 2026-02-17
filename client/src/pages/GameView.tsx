@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useGame, useDeleteGame, useUpdateGame } from '../hooks/useGames';
 import { useDeleteDeck } from '../hooks/useDecks';
-import { fetchCovers, fetchTemplates } from '../api/client';
+import { fetchCovers, fetchTemplates, openGameFolder } from '../api/client';
 import ExportModal from '../components/ExportModal';
 import AssetBrowser from '../components/AssetBrowser';
 
@@ -136,7 +136,16 @@ export default function GameView() {
                 />
               )}
               <div>
-                <h1 style={{ fontSize: 26, marginBottom: 'var(--sp-1)' }}>{game.title}</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-1)' }}>
+                  <h1 style={{ fontSize: 26 }}>{game.title}</h1>
+                  <button
+                    className="secondary sm"
+                    onClick={() => openGameFolder(game.id)}
+                    title={navigator.platform.startsWith('Mac') ? 'Open in Finder' : 'Open in File Explorer'}
+                  >
+                    {navigator.platform.startsWith('Mac') ? 'Open in Finder' : 'Open in File Explorer'}
+                  </button>
+                </div>
                 {game.description && (
                   <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-2)' }}>{game.description}</p>
                 )}
