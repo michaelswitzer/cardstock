@@ -77,6 +77,13 @@ export async function fetchCardbacks(gameId: string): Promise<ImageListResponse>
   return data;
 }
 
+export async function uploadCoverImage(gameId: string, file: File): Promise<Game> {
+  const form = new FormData();
+  form.append('cover', file);
+  const { data } = await api.post(`/games/${gameId}/images/upload-cover`, form);
+  return data;
+}
+
 // --- Card Rendering ---
 
 export async function renderPreview(

@@ -2,9 +2,22 @@ import { Router, type Request } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
-import { getGameSlug, GAMES_DIR } from '../services/dataStore.js';
+import multer from 'multer';
+import { getGameSlug, GAMES_DIR, updateGame } from '../services/dataStore.js';
 
 export const imagesRouter = Router({ mergeParams: true });
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  fileFilter: (_req, file, cb) => {
+    if (IMAGE_RE.test(file.originalname)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files (png, jpg, gif, svg, webp) are allowed'));
+    }
+  },
+});
 
 const IMAGE_RE = /\.(png|jpe?g|gif|svg|webp)$/i;
 
@@ -128,3 +141,32 @@ imagesRouter.get('/thumb/*', async (req: Request<{ gameId: string; 0: string }>,
     next(err);
   }
 });
+
+/**
+ * POST /api/games/:gameId/images/upload-cover
+ * Uploads a cover image to the game folder root and sets it as coverImage.
+ */
+imagesRouter.post(
+  '/upload-cover',
+  upload.single('cover'),
+  async (req: Request<{ gameId: string }>, res, next) => {
+    try {
+      const gameDir = resolveGameDir(req.params.gameId);
+      if (!gameDir) { res.status(404).json({ error: 'Game not found' }); return; }
+
+      const file = req.file;
+      if (!file) { res.status(400).json({ error: 'No file uploaded' }); return; }
+
+      const filename = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const destPath = path.join(gameDir, filename);
+      await fs.writeFile(destPath, file.buffer);
+
+      const game = await updateGame(req.params.gameId, { coverImage: filename });
+      if (!game) { res.status(404).json({ error: 'Game not found' }); return; }
+
+      res.json(game);
+    } catch (err) {
+      next(err);
+    }
+  }
+);

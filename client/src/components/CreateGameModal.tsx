@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCreateGame } from '../hooks/useGames';
+import { uploadCoverImage } from '../api/client';
 
 interface CreateGameModalProps {
   open: boolean;
@@ -9,12 +11,15 @@ interface CreateGameModalProps {
 
 export default function CreateGameModal({ open, onClose }: CreateGameModalProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const createGame = useCreateGame();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [sheetUrl, setSheetUrl] = useState('');
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!open) return null;
 
@@ -30,9 +35,15 @@ export default function CreateGameModal({ open, onClose }: CreateGameModalProps)
         description: description.trim() || undefined,
         sheetUrl: sheetUrl.trim(),
       });
+      if (coverFile) {
+        await uploadCoverImage(game.id, coverFile);
+        queryClient.invalidateQueries({ queryKey: ['games'] });
+      }
       setTitle('');
       setDescription('');
       setSheetUrl('');
+      setCoverFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       onClose();
       navigate(`/games/${game.id}`);
     } catch (err) {
@@ -89,6 +100,18 @@ export default function CreateGameModal({ open, onClose }: CreateGameModalProps)
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 'var(--sp-1)' }}>
               Must be published to the web (File &rarr; Share &rarr; Publish to web)
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="game-cover" className="form-label">Cover Image</label>
+            <input
+              ref={fileInputRef}
+              id="game-cover"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
+              style={{ width: '100%' }}
+            />
           </div>
         </div>
 
