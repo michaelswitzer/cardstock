@@ -113,9 +113,6 @@ export default function GamesInventory() {
               </div>
             )}
             <div className="game-tile-title">{game.title}</div>
-            <div className="game-tile-meta">
-              {game.deckCount} deck{game.deckCount !== 1 ? 's' : ''}
-            </div>
             {game.description && (
               <div className="game-tile-meta" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {game.description}
