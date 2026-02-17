@@ -12,8 +12,8 @@
   "scripts": {
     "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
-    "build:electron": "npm run build && cd electron && npx tsc && cd .. && node scripts/copy-client-dist.js",
-    "dist": "npm run build:electron && node scripts/download-chrome.js && npx electron-builder --win"
+    "build:electron": "npm run build && cd electron && npx tsc && npx tsc -p tsconfig.preload.json && cd .. && node scripts/copy-client-dist.js",
+    "dist": "npm run build:electron && node scripts/download-chrome.js && node scripts/setup-codesign-cache.js && npx electron-builder --win"
   },
   "devDependencies": {
     "@puppeteer/browsers": "^2.12.1",
@@ -22,6 +22,8 @@
     "electron-builder": "^26.7.0"
   },
   "dependencies": {
+    "@cardmaker/server": "*",
+    "@cardmaker/shared": "*",
     "electron-store": "^11.0.2"
   },
   "build": {
@@ -30,8 +32,10 @@
     "directories": {
       "output": "dist-electron"
     },
+    "asar": false,
     "files": [
       "electron/dist/**/*",
+      "electron/icon.png",
       "server/dist/**/*",
       "server/package.json",
       "shared/dist/**/*",

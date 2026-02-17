@@ -115,10 +115,66 @@ An `example` template is included in the repo as a starting point. To create you
 
 100 CSS px = 1 inch. Cards are 250x350 CSS px. Puppeteer renders at `deviceScaleFactor: 3`, producing 750x1050 px output at 300 DPI.
 
+## Building from Source
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or later)
+- npm (comes with Node.js)
+
+### Development
+
+```bash
+npm install
+```
+
+Start the server and client in separate terminals:
+
+```bash
+cd server && npx tsx src/index.ts    # API server on port 3001
+cd client && npx vite                # Dev server on port 5173
+```
+
+Open http://localhost:5173.
+
+### Building the Desktop App
+
+To run the Electron app in development:
+
+```bash
+npm run build:electron
+npx electron .
+```
+
+This requires a local Chrome for Testing binary. Download it once with:
+
+```bash
+node scripts/download-chrome.js
+```
+
+### Packaging a Windows Installer
+
+To produce a standalone Windows installer (`.exe`):
+
+```bash
+npm run dist
+```
+
+This will:
+1. Build all workspaces (shared, server, client)
+2. Compile the Electron main process and preload script
+3. Download Chrome for Testing (if not already cached)
+4. Package everything into an NSIS installer
+
+The installer is output to `dist-electron/Cardstock Setup <version>.exe`. It includes everything needed to run — no separate Node.js or Chrome install is required.
+
+> **Note:** The app is not code-signed, so Windows SmartScreen may show a warning on first launch. Click "More info" then "Run anyway" to proceed.
+
 ## Tech Stack
 
 - **Client:** React 19, Vite, Zustand, TanStack React Query
 - **Server:** Express, Puppeteer, sharp, pdf-lib, PapaParse
+- **Desktop:** Electron, electron-builder
 - **Shared:** TypeScript
 
 ## License

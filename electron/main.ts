@@ -156,7 +156,8 @@ function createSplash(): BrowserWindow {
 
 async function startServer(): Promise<void> {
   // Find a free port, set it for the server
-  const { SERVER_PORT } = await import('@cardmaker/shared');
+  const sharedEntry = pathToFileURL(path.join(PROJECT_ROOT, 'shared', 'dist', 'index.js')).href;
+  const { SERVER_PORT } = await import(sharedEntry);
   serverPort = await findFreePort(SERVER_PORT);
   process.env.PORT = String(serverPort);
 
@@ -182,9 +183,7 @@ async function startServer(): Promise<void> {
 // --- Main window ---
 
 function createMainWindow(): BrowserWindow {
-  const iconPath = isDev
-    ? path.join(PROJECT_ROOT, 'electron', 'icon.png')
-    : path.join(__dirname, 'icon.png');
+  const iconPath = path.join(PROJECT_ROOT, 'electron', 'icon.png');
 
   const win = new BrowserWindow({
     width: 1400,
@@ -196,7 +195,7 @@ function createMainWindow(): BrowserWindow {
     frame: false,
     show: false,
     webPreferences: {
-      preload: path.join(PROJECT_ROOT, 'electron', 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -240,10 +239,15 @@ app.whenReady().then(async () => {
     } else {
       // Production: templates in extraResources
       process.env.CARDMAKER_TEMPLATES_DIR = path.join(process.resourcesPath!, 'templates');
-      process.env.CARDMAKER_CLIENT_DIST = path.join(__dirname, '..', 'client-dist');
-      process.env.PUPPETEER_EXECUTABLE_PATH = path.join(
-        process.resourcesPath!, 'chrome', 'chrome-win64', 'chrome.exe'
-      );
+      process.env.CARDMAKER_CLIENT_DIST = path.join(PROJECT_ROOT, 'client-dist');
+      // Chrome is in extraResources/chrome/chrome/<version>/chrome-win64/chrome.exe
+      const chromeResDir = path.join(process.resourcesPath!, 'chrome', 'chrome');
+      if (fs.existsSync(chromeResDir)) {
+        const builds = fs.readdirSync(chromeResDir);
+        if (builds.length > 0) {
+          process.env.PUPPETEER_EXECUTABLE_PATH = path.join(chromeResDir, builds[0], 'chrome-win64', 'chrome.exe');
+        }
+      }
     }
 
     // 4. Start the Express server
