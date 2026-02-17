@@ -583,7 +583,11 @@ a:hover {
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: var(--sp-1);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 16px;
   border-radius: var(--radius);
   transition: color 0.1s ease, background 0.1s ease;
