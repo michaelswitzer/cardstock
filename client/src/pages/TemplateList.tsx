@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { fetchTemplates } from '../api/client';
+import { fetchTemplates, openTemplatesFolder } from '../api/client';
 import { useDeleteTemplate } from '../hooks/useTemplates';
 
 export default function TemplateList() {
@@ -21,7 +21,15 @@ export default function TemplateList() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-5)' }}>
-        <h1 style={{ fontSize: 26, flex: 1 }}>Card Templates</h1>
+        <h1 style={{ fontSize: 26 }}>Card Templates</h1>
+        <button
+          className="secondary sm"
+          onClick={() => openTemplatesFolder()}
+          title={navigator.platform.startsWith('Mac') ? 'Open in Finder' : 'Open in File Explorer'}
+        >
+          {navigator.platform.startsWith('Mac') ? 'Open in Finder' : 'Open in File Explorer'}
+        </button>
+        <div style={{ flex: 1 }} />
         <button className="primary" onClick={() => navigate('/templates/new')}>
           New Template
         </button>

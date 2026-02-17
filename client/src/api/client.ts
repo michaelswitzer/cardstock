@@ -60,6 +60,10 @@ export async function deleteTemplate(id: string): Promise<void> {
   await api.delete(`/templates/${id}`);
 }
 
+export async function openTemplatesFolder(): Promise<void> {
+  await api.post('/templates/open-folder');
+}
+
 // --- Images (game-scoped) ---
 
 export async function fetchImages(gameId: string): Promise<ImageListResponse> {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { exec } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import { listTemplates, getTemplate, loadTemplateHTML, loadTemplateCSS, TEMPLATES_DIR } from '../services/templateEngine.js';
@@ -116,6 +117,23 @@ templatesRouter.put('/:id', async (req, res, next) => {
       loadTemplateCSS(id),
     ]);
     res.json({ template, html: savedHtml, css: savedCss });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** POST /api/templates/open-folder — open templates folder in file explorer */
+templatesRouter.post('/open-folder', async (_req, res, next) => {
+  try {
+    const platform = process.platform;
+    if (platform === 'win32') {
+      exec(`explorer "${TEMPLATES_DIR}"`);
+    } else if (platform === 'darwin') {
+      exec(`open "${TEMPLATES_DIR}"`);
+    } else {
+      exec(`xdg-open "${TEMPLATES_DIR}"`);
+    }
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

@@ -49,6 +49,32 @@ async function pickDataFolder(): Promise<string | null> {
   return result.filePaths[0];
 }
 
+function getBundledTemplatesDir(): string {
+  if (isDev) {
+    return path.join(PROJECT_ROOT, 'server', 'templates');
+  }
+  return path.join(process.resourcesPath!, 'templates');
+}
+
+function seedTemplates(dataFolder: string): void {
+  const destDir = path.join(dataFolder, 'templates');
+  // Check if templates folder already has subdirectories (user content)
+  const existing = fs.readdirSync(destDir).filter((entry) =>
+    fs.statSync(path.join(destDir, entry)).isDirectory()
+  );
+  if (existing.length > 0) return; // Don't overwrite user content
+
+  const srcDir = getBundledTemplatesDir();
+  if (!fs.existsSync(srcDir)) return;
+
+  // Copy each template folder recursively
+  for (const entry of fs.readdirSync(srcDir)) {
+    const srcPath = path.join(srcDir, entry);
+    if (!fs.statSync(srcPath).isDirectory()) continue;
+    fs.cpSync(srcPath, path.join(destDir, entry), { recursive: true });
+  }
+}
+
 async function ensureDataFolder(): Promise<string> {
   let dataFolder = store.get('dataFolder');
 
@@ -64,9 +90,12 @@ async function ensureDataFolder(): Promise<string> {
   }
 
   // Ensure subdirectories exist
-  for (const sub of ['games', 'output']) {
+  for (const sub of ['games', 'output', 'templates']) {
     fs.mkdirSync(path.join(dataFolder, sub), { recursive: true });
   }
+
+  // Seed templates if the folder is empty
+  seedTemplates(dataFolder);
 
   return dataFolder;
 }
@@ -79,6 +108,11 @@ ipcMain.handle('pick-data-folder', async () => {
   const chosen = await pickDataFolder();
   if (chosen) {
     store.set('dataFolder', chosen);
+    // Ensure subdirectories exist in the new folder
+    for (const sub of ['games', 'output', 'templates']) {
+      fs.mkdirSync(path.join(chosen, sub), { recursive: true });
+    }
+    seedTemplates(chosen);
   }
   return chosen;
 });
@@ -217,10 +251,10 @@ app.whenReady().then(async () => {
     // 3. Set env vars for the server
     process.env.CARDMAKER_DATA_ROOT = dataFolder;
     process.env.CARDMAKER_OUTPUT_DIR = path.join(dataFolder, 'output');
+    process.env.CARDMAKER_TEMPLATES_DIR = path.join(dataFolder, 'templates');
 
     if (isDev) {
-      // Dev mode: templates and client-dist in source tree
-      process.env.CARDMAKER_TEMPLATES_DIR = path.join(PROJECT_ROOT, 'server', 'templates');
+      // Dev mode: client-dist in source tree
       process.env.CARDMAKER_CLIENT_DIST = path.join(PROJECT_ROOT, 'client-dist');
 
       // Dev mode: find Chrome for Testing downloaded by scripts/download-chrome.js
@@ -237,8 +271,7 @@ app.whenReady().then(async () => {
         }
       }
     } else {
-      // Production: templates in extraResources
-      process.env.CARDMAKER_TEMPLATES_DIR = path.join(process.resourcesPath!, 'templates');
+      // Production
       process.env.CARDMAKER_CLIENT_DIST = path.join(PROJECT_ROOT, 'client-dist');
       // Chrome is in extraResources/chrome/chrome/<version>/chrome-win64/chrome.exe
       const chromeResDir = path.join(process.resourcesPath!, 'chrome', 'chrome');
