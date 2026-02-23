@@ -19,6 +19,30 @@ let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
 let serverPort = 3001;
 
+// --- Cross-platform Chrome binary discovery ---
+
+function findChromeBinary(baseDir: string): string | null {
+  if (!fs.existsSync(baseDir)) return null;
+  const builds = fs.readdirSync(baseDir);
+  if (builds.length === 0) return null;
+
+  const version = builds[0];
+  let chromePath: string;
+
+  if (process.platform === 'darwin') {
+    chromePath = path.join(
+      baseDir, version,
+      'chrome-mac-x64',
+      'Google Chrome for Testing.app',
+      'Contents', 'MacOS', 'Google Chrome for Testing'
+    );
+  } else {
+    chromePath = path.join(baseDir, version, 'chrome-win64', 'chrome.exe');
+  }
+
+  return fs.existsSync(chromePath) ? chromePath : null;
+}
+
 // --- Port detection ---
 
 function isPortFree(port: number): Promise<boolean> {
@@ -261,27 +285,18 @@ app.whenReady().then(async () => {
 
       // Dev mode: find Chrome for Testing downloaded by scripts/download-chrome.js
       if (!process.env.PUPPETEER_EXECUTABLE_PATH) {
-        const chromeDir = path.join(PROJECT_ROOT, 'chrome', 'chrome');
-        if (fs.existsSync(chromeDir)) {
-          const builds = fs.readdirSync(chromeDir);
-          if (builds.length > 0) {
-            const chromePath = path.join(chromeDir, builds[0], 'chrome-win64', 'chrome.exe');
-            if (fs.existsSync(chromePath)) {
-              process.env.PUPPETEER_EXECUTABLE_PATH = chromePath;
-            }
-          }
+        const chromePath = findChromeBinary(path.join(PROJECT_ROOT, 'chrome', 'chrome'));
+        if (chromePath) {
+          process.env.PUPPETEER_EXECUTABLE_PATH = chromePath;
         }
       }
     } else {
       // Production
       process.env.CARDMAKER_CLIENT_DIST = path.join(PROJECT_ROOT, 'client-dist');
-      // Chrome is in extraResources/chrome/chrome/<version>/chrome-win64/chrome.exe
-      const chromeResDir = path.join(process.resourcesPath!, 'chrome', 'chrome');
-      if (fs.existsSync(chromeResDir)) {
-        const builds = fs.readdirSync(chromeResDir);
-        if (builds.length > 0) {
-          process.env.PUPPETEER_EXECUTABLE_PATH = path.join(chromeResDir, builds[0], 'chrome-win64', 'chrome.exe');
-        }
+      // Chrome is in extraResources/chrome/chrome/<version>/<platform>/
+      const chromePath = findChromeBinary(path.join(process.resourcesPath!, 'chrome', 'chrome'));
+      if (chromePath) {
+        process.env.PUPPETEER_EXECUTABLE_PATH = chromePath;
       }
     }
 
@@ -315,7 +330,19 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    mainWindow = createMainWindow();
+    mainWindow.loadURL(`http://localhost:${serverPort}`);
+    mainWindow.once('ready-to-show', () => {
+      mainWindow?.show();
+    });
+  }
 });
 
 app.on('before-quit', async () => {

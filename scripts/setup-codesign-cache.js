@@ -8,7 +8,12 @@
 import { execSync } from 'child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
+import { homedir, platform } from 'os';
+
+if (platform() !== 'win32') {
+  console.log('Skipping winCodeSign setup on non-Windows platform.');
+  process.exit(0);
+}
 
 const CACHE_DIR = join(
   homedir(),
