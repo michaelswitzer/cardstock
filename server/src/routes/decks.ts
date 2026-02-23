@@ -28,7 +28,8 @@ decksRouter.get('/games/:gameId/decks', async (req, res, next) => {
 /** POST /api/games/:gameId/decks — create a deck */
 decksRouter.post('/games/:gameId/decks', async (req, res, next) => {
   try {
-    const { name, sheetTabGid, sheetTabName, templateId, mapping, cardBackImage } = req.body;
+    const { name, sheetTabGid, sheetTabName, templateId, mapping, cardBackImage,
+      cardSizePreset, cardWidthInches, cardHeightInches, landscape } = req.body;
     if (!name || !sheetTabGid || !sheetTabName || !templateId) {
       res.status(400).json({ error: 'name, sheetTabGid, sheetTabName, and templateId are required' });
       return;
@@ -40,6 +41,10 @@ decksRouter.post('/games/:gameId/decks', async (req, res, next) => {
       templateId,
       mapping: mapping ?? {},
       cardBackImage,
+      cardSizePreset,
+      cardWidthInches,
+      cardHeightInches,
+      landscape,
     });
     if (!deck) {
       res.status(404).json({ error: 'Game not found' });
@@ -68,7 +73,8 @@ decksRouter.get('/decks/:id', async (req, res, next) => {
 /** PUT /api/decks/:id — update a deck */
 decksRouter.put('/decks/:id', async (req, res, next) => {
   try {
-    const { name, sheetTabGid, sheetTabName, templateId, mapping, cardBackImage } = req.body;
+    const { name, sheetTabGid, sheetTabName, templateId, mapping, cardBackImage,
+      cardSizePreset, cardWidthInches, cardHeightInches, landscape } = req.body;
     const deck = await updateDeck(req.params.id, {
       name,
       sheetTabGid,
@@ -76,6 +82,10 @@ decksRouter.put('/decks/:id', async (req, res, next) => {
       templateId,
       mapping,
       cardBackImage,
+      cardSizePreset,
+      cardWidthInches,
+      cardHeightInches,
+      landscape,
     });
     if (!deck) {
       res.status(404).json({ error: 'Deck not found' });

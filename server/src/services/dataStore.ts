@@ -286,7 +286,7 @@ export async function updateDeck(
   if (updates.cardSizePreset !== undefined) sd.cardSizePreset = updates.cardSizePreset || undefined;
   if (updates.cardWidthInches !== undefined) sd.cardWidthInches = updates.cardWidthInches || undefined;
   if (updates.cardHeightInches !== undefined) sd.cardHeightInches = updates.cardHeightInches || undefined;
-  if (updates.landscape !== undefined) sd.landscape = updates.landscape || undefined;
+  if (updates.landscape !== undefined) sd.landscape = updates.landscape ?? undefined;
   sd.updatedAt = new Date().toISOString();
   gf.updatedAt = sd.updatedAt;
 

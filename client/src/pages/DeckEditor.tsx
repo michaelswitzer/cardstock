@@ -220,12 +220,9 @@ export default function DeckEditor() {
       return;
     }
     setError('');
-    const sizeFields = {
-      cardSizePreset,
-      ...(cardSizePreset === 'custom'
-        ? { cardWidthInches: customWidth, cardHeightInches: customHeight, landscape: false }
-        : { cardWidthInches: undefined, cardHeightInches: undefined, landscape: landscape || undefined }),
-    } as const;
+    const sizeFields = cardSizePreset === 'custom'
+      ? { cardSizePreset, cardWidthInches: customWidth, cardHeightInches: customHeight, landscape: false }
+      : { cardSizePreset, cardWidthInches: 0, cardHeightInches: 0, landscape };
     try {
       if (isEditing && existingDeck) {
         await updateDeck.mutateAsync({
