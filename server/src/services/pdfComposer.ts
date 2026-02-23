@@ -10,6 +10,8 @@ import {
 interface PdfOptions {
   pageSize: 'letter' | 'a4';
   cropMarks: boolean;
+  cardWidthInches?: number;
+  cardHeightInches?: number;
 }
 
 /**
@@ -22,8 +24,8 @@ export async function composePdf(
   const pdf = await PDFDocument.create();
   const pageSpec = PDF_PAGE_SIZES[options.pageSize];
 
-  const cardWidthPts = CARD_WIDTH_INCHES * 72;
-  const cardHeightPts = CARD_HEIGHT_INCHES * 72;
+  const cardWidthPts = (options.cardWidthInches ?? CARD_WIDTH_INCHES) * 72;
+  const cardHeightPts = (options.cardHeightInches ?? CARD_HEIGHT_INCHES) * 72;
 
   // Calculate grid: how many cards fit per page
   const usableWidth = pageSpec.width - 2 * PDF_MARGIN;

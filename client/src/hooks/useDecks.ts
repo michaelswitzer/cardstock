@@ -6,7 +6,7 @@ import {
   updateDeck,
   deleteDeck,
 } from '../api/client';
-import type { FieldMapping } from '@cardmaker/shared';
+import type { FieldMapping, CardSizePresetName } from '@cardmaker/shared';
 
 export function useDecks(gameId: string | undefined) {
   return useQuery({
@@ -38,6 +38,10 @@ export function useCreateDeck() {
       templateId: string;
       mapping: FieldMapping;
       cardBackImage?: string;
+      cardSizePreset?: CardSizePresetName;
+      cardWidthInches?: number;
+      cardHeightInches?: number;
+      landscape?: boolean;
     }) => createDeck(gameId, input),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['decks', vars.gameId] });

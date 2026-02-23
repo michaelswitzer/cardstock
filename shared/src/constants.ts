@@ -33,6 +33,53 @@ export const CROP_MARK_LENGTH = 18; // 0.25 inch
 /** Margin around cards on PDF page in points */
 export const PDF_MARGIN = 36; // 0.5 inch
 
+/** Card size preset names */
+export type CardSizePresetName = 'poker' | 'bridge' | 'tarot' | 'custom';
+
+/** Card size presets (dimensions in inches) */
+export const CARD_SIZE_PRESETS: Record<Exclude<CardSizePresetName, 'custom'>, { label: string; width: number; height: number }> = {
+  poker:  { label: 'Poker',  width: 2.5,  height: 3.5  },
+  bridge: { label: 'Bridge', width: 2.25, height: 3.5  },
+  tarot:  { label: 'Tarot',  width: 2.75, height: 4.75 },
+};
+
+/** Maximum card dimension in inches (for custom sizes) */
+export const MAX_CARD_INCHES = 6;
+
+/** Resolved card dimensions across all unit systems */
+export interface ResolvedCardDimensions {
+  widthInches: number;
+  heightInches: number;
+  widthCss: number;
+  heightCss: number;
+  widthPx: number;
+  heightPx: number;
+}
+
+/**
+ * Resolves card dimensions from inches to CSS px and output px.
+ * Applies landscape swap if requested.
+ */
+export function resolveCardDimensions(
+  widthInches: number,
+  heightInches: number,
+  landscape?: boolean
+): ResolvedCardDimensions {
+  let w = widthInches;
+  let h = heightInches;
+  if (landscape && h > w) {
+    [w, h] = [h, w];
+  }
+  return {
+    widthInches: w,
+    heightInches: h,
+    widthCss: Math.round(w * 100),
+    heightCss: Math.round(h * 100),
+    widthPx: Math.round(w * 100 * RENDER_SCALE),
+    heightPx: Math.round(h * 100 * RENDER_SCALE),
+  };
+}
+
 /** Server config */
 export const SERVER_PORT = 3001;
 export const CLIENT_PORT = 5173;

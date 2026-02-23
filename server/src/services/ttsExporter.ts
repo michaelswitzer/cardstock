@@ -12,15 +12,19 @@ import {
  */
 export async function composeTtsSpriteSheet(
   cardPngs: Buffer[],
-  columns?: number
+  columns?: number,
+  cardWidthPx?: number,
+  cardHeightPx?: number
 ): Promise<Buffer> {
+  const cw = cardWidthPx ?? CARD_WIDTH_PX;
+  const ch = cardHeightPx ?? CARD_HEIGHT_PX;
   const count = cardPngs.length;
   const cols = Math.min(columns ?? Math.min(count, TTS_MAX_COLUMNS), TTS_MAX_COLUMNS);
   const rows = Math.min(Math.ceil(count / cols), TTS_MAX_ROWS);
   const totalCards = Math.min(count, cols * rows);
 
-  const sheetWidth = cols * CARD_WIDTH_PX;
-  const sheetHeight = rows * CARD_HEIGHT_PX;
+  const sheetWidth = cols * cw;
+  const sheetHeight = rows * ch;
 
   // Build composite input array
   const compositeInputs = [];
@@ -29,8 +33,8 @@ export async function composeTtsSpriteSheet(
     const row = Math.floor(i / cols);
     compositeInputs.push({
       input: cardPngs[i],
-      left: col * CARD_WIDTH_PX,
-      top: row * CARD_HEIGHT_PX,
+      left: col * cw,
+      top: row * ch,
     });
   }
 

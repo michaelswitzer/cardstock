@@ -9,6 +9,14 @@ import { buildTabCsvUrl } from '../api/sheetUtils';
 import FieldMapper from '../components/FieldMapper';
 import AssetBrowser from '../components/AssetBrowser';
 import type { FieldMapping, CardData } from '@cardmaker/shared';
+import {
+  CARD_SIZE_PRESETS,
+  CARD_WIDTH_INCHES,
+  CARD_HEIGHT_INCHES,
+  MAX_CARD_INCHES,
+  resolveCardDimensions,
+  type CardSizePresetName,
+} from '@cardmaker/shared';
 
 export default function DeckEditor() {
   const { id: gameId, deckId } = useParams<{ id: string; deckId: string }>();
@@ -39,6 +47,10 @@ export default function DeckEditor() {
   const [templateId, setTemplateId] = useState('');
   const [mapping, setMapping] = useState<FieldMapping>({});
   const [cardBackImage, setCardBackImage] = useState('');
+  const [cardSizePreset, setCardSizePreset] = useState<CardSizePresetName>('poker');
+  const [customWidth, setCustomWidth] = useState(2.5);
+  const [customHeight, setCustomHeight] = useState(3.5);
+  const [landscape, setLandscape] = useState(false);
   const [error, setError] = useState('');
   const [initialized, setInitialized] = useState(false);
 
@@ -61,6 +73,17 @@ export default function DeckEditor() {
   const templates = templateData?.templates ?? [];
   const selectedTemplate = templates.find((t) => t.id === templateId);
 
+  // Resolve current card dimensions
+  const presetInfo = cardSizePreset !== 'custom' ? CARD_SIZE_PRESETS[cardSizePreset] : undefined;
+  const curWidthIn = cardSizePreset === 'custom' ? customWidth : (presetInfo?.width ?? CARD_WIDTH_INCHES);
+  const curHeightIn = cardSizePreset === 'custom' ? customHeight : (presetInfo?.height ?? CARD_HEIGHT_INCHES);
+  const resolvedDims = resolveCardDimensions(curWidthIn, curHeightIn, cardSizePreset !== 'custom' ? landscape : false);
+  const dimsInput = {
+    cardSizePreset,
+    ...(cardSizePreset === 'custom' ? { cardWidthInches: customWidth, cardHeightInches: customHeight } : {}),
+    ...(cardSizePreset !== 'custom' && landscape ? { landscape: true } : {}),
+  };
+
   // Populate form when editing
   useEffect(() => {
     if (isEditing && existingDeck && !initialized) {
@@ -70,6 +93,10 @@ export default function DeckEditor() {
       setTemplateId(existingDeck.templateId);
       setMapping(existingDeck.mapping);
       setCardBackImage(existingDeck.cardBackImage ?? '');
+      setCardSizePreset(existingDeck.cardSizePreset ?? 'poker');
+      if (existingDeck.cardWidthInches) setCustomWidth(existingDeck.cardWidthInches);
+      if (existingDeck.cardHeightInches) setCustomHeight(existingDeck.cardHeightInches);
+      setLandscape(existingDeck.landscape ?? false);
       setInitialized(true);
     }
   }, [existingDeck, isEditing, initialized]);
@@ -98,7 +125,8 @@ export default function DeckEditor() {
     return () => { cancelled = true; };
   }, [selectedTabGid, sheetUrl]);
 
-  // Render preview when mapping changes
+  // Render preview when mapping or dimensions change
+  const dimsKey = JSON.stringify(dimsInput);
   useEffect(() => {
     if (!templateId || !sheetRows.length || Object.values(mapping).every((v) => !v)) {
       setPreviewUrl(null);
@@ -107,7 +135,7 @@ export default function DeckEditor() {
     const key = ++previewKey.current;
     setLoadingPreview(true);
     const cardIndex = Math.min(previewIndex, sheetRows.length - 1);
-    renderPreview(templateId, sheetRows[cardIndex], mapping, gameId)
+    renderPreview(templateId, sheetRows[cardIndex], mapping, gameId, dimsInput)
       .then((dataUrl) => {
         if (previewKey.current === key) {
           setPreviewUrl(dataUrl);
@@ -121,7 +149,7 @@ export default function DeckEditor() {
           setLoadingPreview(false);
         }
       });
-  }, [templateId, mapping, sheetRows, previewIndex]);
+  }, [templateId, mapping, sheetRows, previewIndex, dimsKey]);
 
   const handleTabChange = (gid: string) => {
     setSelectedTabGid(gid);
@@ -192,6 +220,12 @@ export default function DeckEditor() {
       return;
     }
     setError('');
+    const sizeFields = {
+      cardSizePreset,
+      ...(cardSizePreset === 'custom'
+        ? { cardWidthInches: customWidth, cardHeightInches: customHeight, landscape: false }
+        : { cardWidthInches: undefined, cardHeightInches: undefined, landscape: landscape || undefined }),
+    } as const;
     try {
       if (isEditing && existingDeck) {
         await updateDeck.mutateAsync({
@@ -202,6 +236,7 @@ export default function DeckEditor() {
           templateId,
           mapping,
           cardBackImage: cardBackImage || '',
+          ...sizeFields,
         });
         navigate(`/games/${gameId}/decks/${deckId}`);
       } else {
@@ -213,6 +248,7 @@ export default function DeckEditor() {
           templateId,
           mapping,
           cardBackImage: cardBackImage || '',
+          ...sizeFields,
         });
         navigate(`/games/${gameId}/decks/${newDeck.id}`);
       }
@@ -271,6 +307,61 @@ export default function DeckEditor() {
               >
                 View
               </Link>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="deck-size" className="form-label">Card Size</label>
+          <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+            <select
+              id="deck-size"
+              value={cardSizePreset}
+              onChange={(e) => setCardSizePreset(e.target.value as CardSizePresetName)}
+              style={{ flex: '0 0 auto' }}
+            >
+              {Object.entries(CARD_SIZE_PRESETS).map(([key, val]) => (
+                <option key={key} value={key}>
+                  {val.label} ({val.width}" x {val.height}")
+                </option>
+              ))}
+              <option value="custom">Custom</option>
+            </select>
+            {cardSizePreset === 'custom' && (
+              <>
+                <input
+                  type="number"
+                  min={1}
+                  max={MAX_CARD_INCHES}
+                  step={0.01}
+                  value={customWidth}
+                  onChange={(e) => setCustomWidth(Number(e.target.value))}
+                  style={{ width: 72 }}
+                  title="Width (inches)"
+                />
+                <span style={{ color: 'var(--text-muted)' }}>x</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={MAX_CARD_INCHES}
+                  step={0.01}
+                  value={customHeight}
+                  onChange={(e) => setCustomHeight(Number(e.target.value))}
+                  style={{ width: 72 }}
+                  title="Height (inches)"
+                />
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>inches</span>
+              </>
+            )}
+            {cardSizePreset !== 'custom' && (
+              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 'var(--sp-1)' }}>
+                <input
+                  type="checkbox"
+                  checked={landscape}
+                  onChange={(e) => setLandscape(e.target.checked)}
+                />
+                Landscape
+              </label>
             )}
           </div>
         </div>
@@ -343,7 +434,7 @@ export default function DeckEditor() {
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius)',
-                aspectRatio: '250 / 350',
+                aspectRatio: `${resolvedDims.widthCss} / ${resolvedDims.heightCss}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

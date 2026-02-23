@@ -12,8 +12,6 @@ export interface CardTemplate {
   id: string;
   name: string;
   description: string;
-  width: number;   // in inches
-  height: number;  // in inches
   fields: TemplateField[];
   imageSlots: ImageSlot[];
 }
@@ -101,6 +99,10 @@ export interface Deck {
   templateId: string;
   mapping: FieldMapping;
   cardBackImage?: string;
+  cardSizePreset?: import('./constants.js').CardSizePresetName;
+  cardWidthInches?: number;
+  cardHeightInches?: number;
+  landscape?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -114,6 +116,10 @@ export interface StoredDeck {
   templateId: string;
   mapping: FieldMapping;
   cardBackImage?: string;
+  cardSizePreset?: import('./constants.js').CardSizePresetName;
+  cardWidthInches?: number;
+  cardHeightInches?: number;
+  landscape?: boolean;
   createdAt: string;
   updatedAt: string;
 }

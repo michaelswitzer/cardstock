@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import type { CardData, ExportJob, ExportFormat, FieldMapping } from '@cardmaker/shared';
+import type { CardSizePresetName } from '@cardmaker/shared';
+import {
+  CARD_SIZE_PRESETS,
+  CARD_WIDTH_INCHES,
+  CARD_HEIGHT_INCHES,
+  resolveCardDimensions,
+} from '@cardmaker/shared';
 import { useAppStore } from '../stores/appStore';
 import { startExport, startGameExport, getExportJob } from '../api/client';
 import ExportProgress from './ExportProgress';
@@ -15,6 +22,11 @@ interface ExportModalProps {
   cardBackImage?: string;
   // For game-scoped export:
   gameId?: string;
+  // Card dimensions:
+  cardSizePreset?: CardSizePresetName;
+  cardWidthInches?: number;
+  cardHeightInches?: number;
+  landscape?: boolean;
 }
 
 export default function ExportModal({
@@ -26,6 +38,10 @@ export default function ExportModal({
   mapping,
   cardBackImage,
   gameId,
+  cardSizePreset,
+  cardWidthInches,
+  cardHeightInches,
+  landscape,
 }: ExportModalProps) {
   const { exportFormat, setExportFormat } = useAppStore();
 
@@ -49,6 +65,26 @@ export default function ExportModal({
   const isGameExport = !!gameId;
   const cardCount = rows?.length ?? 0;
   const hasCardBack = isDeckExport ? !!cardBackImage : isGameExport;
+
+  // Resolve card dimensions for display
+  const dims = (() => {
+    const preset = cardSizePreset;
+    let w = CARD_WIDTH_INCHES;
+    let h = CARD_HEIGHT_INCHES;
+    if (preset && preset !== 'custom' && CARD_SIZE_PRESETS[preset]) {
+      w = CARD_SIZE_PRESETS[preset].width;
+      h = CARD_SIZE_PRESETS[preset].height;
+    } else if (preset === 'custom' && cardWidthInches && cardHeightInches) {
+      w = cardWidthInches;
+      h = cardHeightInches;
+    }
+    return resolveCardDimensions(w, h, landscape);
+  })();
+  const dimsInput = {
+    cardSizePreset,
+    ...(cardSizePreset === 'custom' ? { cardWidthInches, cardHeightInches } : {}),
+    ...(cardSizePreset !== 'custom' && landscape ? { landscape: true } : {}),
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -74,7 +110,7 @@ export default function ExportModal({
           ttsColumns,
           includeCardBack: includeCardBack && !!cardBackImage,
           cardBackImage: includeCardBack ? cardBackImage : undefined,
-        }, gameId!);
+        }, gameId!, dimsInput);
       } else {
         return;
       }
@@ -102,7 +138,7 @@ export default function ExportModal({
   };
 
   const formatOptions: { value: ExportFormat; label: string; desc: string }[] = [
-    { value: 'png', label: 'PNG Images', desc: 'Individual 750x1050 card images at 300 DPI' },
+    { value: 'png', label: 'PNG Images', desc: `Individual ${dims.widthPx}x${dims.heightPx} card images at 300 DPI` },
     { value: 'pdf', label: 'Print PDF', desc: 'Cards arranged on pages with crop marks' },
     { value: 'tts', label: 'TTS Sprite Sheet', desc: 'Grid image for Tabletop Simulator' },
   ];

@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { CardData, CardTemplate, FieldMapping } from '@cardmaker/shared';
+import { CARD_WIDTH_CSS, CARD_HEIGHT_CSS } from '@cardmaker/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const TEMPLATES_DIR = process.env.CARDMAKER_TEMPLATES_DIR
@@ -117,7 +118,9 @@ export async function buildCardPage(
   templateId: string,
   cardData: CardData,
   mapping: FieldMapping,
-  artworkBaseUrl: string
+  artworkBaseUrl: string,
+  widthCss: number = CARD_WIDTH_CSS,
+  heightCss: number = CARD_HEIGHT_CSS
 ): Promise<string> {
   const { html: templateHtml, css: templateCss } = await loadTemplatePair(templateId);
 
@@ -128,6 +131,10 @@ export async function buildCardPage(
 <head>
 <meta charset="utf-8">
 <style>
+:root {
+  --card-width: ${widthCss}px;
+  --card-height: ${heightCss}px;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { background: transparent; }
 .inline-icon { height: 1em; width: auto; vertical-align: middle; display: inline; }

@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap');
 
-/* 100 CSS px = 1 inch. Card is 250x350 CSS px = 2.5x3.5 inches */
+/* 100 CSS px = 1 inch. Uses CSS custom properties injected by the renderer. */
 .card {
-  width: 250px;
-  height: 350px;
+  width: var(--card-width, 250px);
+  height: var(--card-height, 350px);
   border: 2px solid #333;
   border-radius: 12px;
   background: #f5f0e6;
@@ -41,8 +41,9 @@
 }
 
 .card-image {
-  width: 230px;
-  height: 170px;
+  width: calc(var(--card-width, 250px) - 20px);
+  height: auto;
+  aspect-ratio: 230 / 170;
   margin: 6px auto;
   background: #ddd;
   border: 1px solid #bbb;

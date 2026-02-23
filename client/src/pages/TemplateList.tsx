@@ -58,7 +58,7 @@ export default function TemplateList() {
             <div>
               <div style={{ fontWeight: 600 }}>{t.name}</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                {t.description} &middot; {t.width}&quot; x {t.height}&quot; &middot;{' '}
+                {t.description} &middot;{' '}
                 {t.fields.length} fields, {t.imageSlots.length} image slots
               </div>
             </div>

@@ -9,6 +9,12 @@ import { buildTabCsvUrl } from '../api/sheetUtils';
 import CardGrid from '../components/CardGrid';
 import DataTable from '../components/DataTable';
 import ExportModal from '../components/ExportModal';
+import {
+  CARD_SIZE_PRESETS,
+  CARD_WIDTH_INCHES,
+  CARD_HEIGHT_INCHES,
+  resolveCardDimensions,
+} from '@cardmaker/shared';
 
 type DeckTab = 'cards' | 'data';
 
@@ -28,6 +34,27 @@ export default function DeckView() {
   const [showExport, setShowExport] = useState(false);
   const [activeTab, setActiveTab] = useState<DeckTab>('cards');
   const renderKey = useRef<number>(0);
+
+  // Resolve card dimensions for this deck
+  const deckPreset = deck?.cardSizePreset;
+  const deckDims = (() => {
+    const preset = deckPreset;
+    let w = CARD_WIDTH_INCHES;
+    let h = CARD_HEIGHT_INCHES;
+    if (preset && preset !== 'custom' && CARD_SIZE_PRESETS[preset]) {
+      w = CARD_SIZE_PRESETS[preset].width;
+      h = CARD_SIZE_PRESETS[preset].height;
+    } else if (preset === 'custom' && deck?.cardWidthInches && deck?.cardHeightInches) {
+      w = deck.cardWidthInches;
+      h = deck.cardHeightInches;
+    }
+    return resolveCardDimensions(w, h, deck?.landscape);
+  })();
+  const dimsInput = deck ? {
+    cardSizePreset: deck.cardSizePreset,
+    ...(deck.cardSizePreset === 'custom' ? { cardWidthInches: deck.cardWidthInches, cardHeightInches: deck.cardHeightInches } : {}),
+    ...(deck.cardSizePreset !== 'custom' && deck.landscape ? { landscape: true } : {}),
+  } : undefined;
 
   const cache = deckId ? deckDataCache[deckId] : undefined;
   const headers = cache?.headers ?? [];
@@ -72,7 +99,7 @@ export default function DeckView() {
     const key = ++renderKey.current;
     setLoading(true);
 
-    renderPreviewBatch(deck.templateId, rows, deck.mapping, gameId)
+    renderPreviewBatch(deck.templateId, rows, deck.mapping, gameId, dimsInput)
       .then((dataUrls) => {
         if (renderKey.current === key) {
           setDeckCardImages(deckId, dataUrls, inputsKey);
@@ -119,7 +146,7 @@ export default function DeckView() {
   // Card back handling
   const hasCardBack = !!deck.cardBackImage;
   const displayImages = hasCardBack && cardImages.length > 0
-    ? [`/api/games/${gameId}/images/thumb/artwork/cardback/${deck.cardBackImage}?w=250&h=350`, ...cardImages]
+    ? [`/api/games/${gameId}/images/thumb/artwork/cardback/${deck.cardBackImage}?w=${deckDims.widthCss}&h=${deckDims.heightCss}`, ...cardImages]
     : cardImages;
   const cardLabels = hasCardBack && cardImages.length > 0
     ? ['Card Back', ...baseLabels]
@@ -149,6 +176,7 @@ export default function DeckView() {
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Sheet: {deck.sheetTabName} &middot; Template:{' '}
             <Link to={`/templates/${deck.templateId}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>{templateName}</Link>
+            {' '}&middot; {deckDims.widthInches}" x {deckDims.heightInches}"{deck.landscape ? ' (Landscape)' : ''}
             {deck.cardBackImage && <> &middot; Card Back: {deck.cardBackImage}</>}
           </p>
         </div>
@@ -269,6 +297,10 @@ export default function DeckView() {
           mapping={deck.mapping}
           cardBackImage={deck.cardBackImage}
           gameId={gameId}
+          cardSizePreset={deck.cardSizePreset}
+          cardWidthInches={deck.cardWidthInches}
+          cardHeightInches={deck.cardHeightInches}
+          landscape={deck.landscape}
         />
       )}
     </div>

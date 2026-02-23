@@ -11,6 +11,14 @@ import type {
   SheetTabsResponse,
   TemplateListResponse,
 } from '@cardmaker/shared';
+import type { CardSizePresetName } from '@cardmaker/shared';
+
+export interface CardDimsInput {
+  cardSizePreset?: CardSizePresetName;
+  cardWidthInches?: number;
+  cardHeightInches?: number;
+  landscape?: boolean;
+}
 
 const api = axios.create({ baseURL: '/api' });
 
@@ -94,13 +102,15 @@ export async function renderPreview(
   templateId: string,
   cardData: CardData,
   mapping: FieldMapping,
-  gameId?: string
+  gameId?: string,
+  dims?: CardDimsInput
 ): Promise<string> {
   const { data } = await api.post('/cards/preview', {
     templateId,
     cardData,
     mapping,
     gameId,
+    ...dims,
   });
   return data.dataUrl;
 }
@@ -109,13 +119,15 @@ export async function renderPreviewBatch(
   templateId: string,
   cards: CardData[],
   mapping: FieldMapping,
-  gameId?: string
+  gameId?: string,
+  dims?: CardDimsInput
 ): Promise<string[]> {
   const { data } = await api.post('/cards/preview-batch', {
     templateId,
     cards,
     mapping,
     gameId,
+    ...dims,
   });
   return data.dataUrls;
 }
@@ -127,7 +139,8 @@ export async function startExport(
   cards: CardData[],
   mapping: FieldMapping,
   options: ExportOptions,
-  gameId: string
+  gameId: string,
+  dims?: CardDimsInput
 ): Promise<string> {
   const { data } = await api.post('/export', {
     templateId,
@@ -135,6 +148,7 @@ export async function startExport(
     mapping,
     options,
     gameId,
+    ...dims,
   });
   return data.jobId;
 }
@@ -205,6 +219,10 @@ export async function createDeck(
     templateId: string;
     mapping: FieldMapping;
     cardBackImage?: string;
+    cardSizePreset?: CardSizePresetName;
+    cardWidthInches?: number;
+    cardHeightInches?: number;
+    landscape?: boolean;
   }
 ): Promise<Deck> {
   const { data } = await api.post(`/games/${gameId}/decks`, input);
@@ -218,7 +236,7 @@ export async function fetchDeck(id: string): Promise<Deck> {
 
 export async function updateDeck(
   id: string,
-  updates: Partial<Pick<Deck, 'name' | 'sheetTabGid' | 'sheetTabName' | 'templateId' | 'mapping' | 'cardBackImage'>>
+  updates: Partial<Pick<Deck, 'name' | 'sheetTabGid' | 'sheetTabName' | 'templateId' | 'mapping' | 'cardBackImage' | 'cardSizePreset' | 'cardWidthInches' | 'cardHeightInches' | 'landscape'>>
 ): Promise<Deck> {
   const { data } = await api.put(`/decks/${id}`, updates);
   return data;

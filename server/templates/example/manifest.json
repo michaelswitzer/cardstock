@@ -1,8 +1,6 @@
 {
   "name": "Example",
-  "description": "An example 2.5\" x 3.5\" card template with title, image, body text, and type line.",
-  "width": 2.5,
-  "height": 3.5,
+  "description": "A responsive card template with title, image, body text, and type line. Adapts to any deck card size via CSS custom properties.",
   "fields": [
     { "name": "title", "label": "Title", "type": "text" },
     { "name": "type", "label": "Type", "type": "text" },

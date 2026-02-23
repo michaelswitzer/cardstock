@@ -86,15 +86,24 @@ export async function warmUp(): Promise<void> {
  * Core screenshot function. Acquires a page from the pool,
  * renders the HTML, takes a screenshot, then releases the page.
  */
-async function screenshotCard(html: string): Promise<Buffer> {
+async function screenshotCard(
+  html: string,
+  widthCss: number = CARD_WIDTH_CSS,
+  heightCss: number = CARD_HEIGHT_CSS
+): Promise<Buffer> {
   const page = await acquirePage();
   try {
+    await page.setViewport({
+      width: widthCss,
+      height: heightCss,
+      deviceScaleFactor: RENDER_SCALE,
+    });
     await page.setContent(html, { waitUntil: 'load' });
 
     const screenshot = await page.screenshot({
       type: 'png',
       omitBackground: true,
-      clip: { x: 0, y: 0, width: CARD_WIDTH_CSS, height: CARD_HEIGHT_CSS },
+      clip: { x: 0, y: 0, width: widthCss, height: heightCss },
     });
 
     return Buffer.from(screenshot);
@@ -106,8 +115,12 @@ async function screenshotCard(html: string): Promise<Buffer> {
 /**
  * Renders an HTML string to a PNG buffer at 300 DPI (for export).
  */
-export async function renderCardToPng(html: string): Promise<Buffer> {
-  const buffer = await screenshotCard(html);
+export async function renderCardToPng(
+  html: string,
+  widthCss?: number,
+  heightCss?: number
+): Promise<Buffer> {
+  const buffer = await screenshotCard(html, widthCss, heightCss);
   return sharp(buffer)
     .withMetadata({ density: TARGET_DPI })
     .png()
@@ -117,8 +130,12 @@ export async function renderCardToPng(html: string): Promise<Buffer> {
 /**
  * Lightweight preview render — returns a base64 data URL.
  */
-export async function renderCardToDataUrl(html: string): Promise<string> {
-  const buffer = await screenshotCard(html);
+export async function renderCardToDataUrl(
+  html: string,
+  widthCss?: number,
+  heightCss?: number
+): Promise<string> {
+  const buffer = await screenshotCard(html, widthCss, heightCss);
   return `data:image/png;base64,${buffer.toString('base64')}`;
 }
 

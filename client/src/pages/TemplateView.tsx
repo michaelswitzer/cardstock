@@ -12,8 +12,6 @@ const STARTER_MANIFEST = JSON.stringify(
   {
     name: 'New Template',
     description: '',
-    width: 2.5,
-    height: 3.5,
     fields: [],
     imageSlots: [],
   },
@@ -272,7 +270,7 @@ export default function TemplateView() {
 
       {!isCreateMode && data?.template && !editing && (
         <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 'var(--sp-4)' }}>
-          {data.template.description} &middot; {data.template.width}&quot; x {data.template.height}&quot; &middot;{' '}
+          {data.template.description} &middot;{' '}
           {data.template.fields.length} fields, {data.template.imageSlots.length} image slots
         </p>
       )}

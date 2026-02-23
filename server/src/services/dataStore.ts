@@ -217,6 +217,10 @@ export async function createDeck(
     templateId: string;
     mapping: FieldMapping;
     cardBackImage?: string;
+    cardSizePreset?: string;
+    cardWidthInches?: number;
+    cardHeightInches?: number;
+    landscape?: boolean;
   }
 ): Promise<Deck | undefined> {
   const slug = gameIndex.get(gameId);
@@ -232,6 +236,10 @@ export async function createDeck(
     templateId: input.templateId,
     mapping: input.mapping,
     cardBackImage: input.cardBackImage,
+    cardSizePreset: input.cardSizePreset as StoredDeck['cardSizePreset'],
+    cardWidthInches: input.cardWidthInches,
+    cardHeightInches: input.cardHeightInches,
+    landscape: input.landscape,
     createdAt: now,
     updatedAt: now,
   };
@@ -258,7 +266,7 @@ export async function getDeck(id: string): Promise<Deck | undefined> {
 
 export async function updateDeck(
   id: string,
-  updates: Partial<Pick<Deck, 'name' | 'sheetTabGid' | 'sheetTabName' | 'templateId' | 'mapping' | 'cardBackImage'>>
+  updates: Partial<Pick<Deck, 'name' | 'sheetTabGid' | 'sheetTabName' | 'templateId' | 'mapping' | 'cardBackImage' | 'cardSizePreset' | 'cardWidthInches' | 'cardHeightInches' | 'landscape'>>
 ): Promise<Deck | undefined> {
   const gameId = deckIndex.get(id);
   if (!gameId) return undefined;
@@ -275,6 +283,10 @@ export async function updateDeck(
   if (updates.templateId !== undefined) sd.templateId = updates.templateId;
   if (updates.mapping !== undefined) sd.mapping = updates.mapping;
   if (updates.cardBackImage !== undefined) sd.cardBackImage = updates.cardBackImage || undefined;
+  if (updates.cardSizePreset !== undefined) sd.cardSizePreset = updates.cardSizePreset || undefined;
+  if (updates.cardWidthInches !== undefined) sd.cardWidthInches = updates.cardWidthInches || undefined;
+  if (updates.cardHeightInches !== undefined) sd.cardHeightInches = updates.cardHeightInches || undefined;
+  if (updates.landscape !== undefined) sd.landscape = updates.landscape || undefined;
   sd.updatedAt = new Date().toISOString();
   gf.updatedAt = sd.updatedAt;
 

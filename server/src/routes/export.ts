@@ -4,8 +4,18 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import type { CardData, ExportJob, ExportOptions, FieldMapping } from '@cardmaker/shared';
-import { SERVER_PORT, CARD_WIDTH_PX, CARD_HEIGHT_PX, TARGET_DPI } from '@cardmaker/shared';
+import type { CardData, ExportJob, ExportOptions, FieldMapping, Deck } from '@cardmaker/shared';
+import {
+  SERVER_PORT,
+  CARD_WIDTH_PX,
+  CARD_HEIGHT_PX,
+  CARD_WIDTH_INCHES,
+  CARD_HEIGHT_INCHES,
+  TARGET_DPI,
+  CARD_SIZE_PRESETS,
+  resolveCardDimensions,
+  type CardSizePresetName,
+} from '@cardmaker/shared';
 import { buildCardPage } from '../services/templateEngine.js';
 import { renderCardToPng } from '../services/renderer.js';
 import { composePdf } from '../services/pdfComposer.js';
@@ -38,13 +48,20 @@ function cardbackDir(gameId: string): string {
  * Body: { templateId, cards, mapping, options, gameId }
  */
 exportRouter.post('/', async (req, res) => {
-  const { templateId, cards, mapping, options, gameId } = req.body as {
+  const { templateId, cards, mapping, options, gameId,
+    cardSizePreset, cardWidthInches, cardHeightInches, landscape } = req.body as {
     templateId: string;
     cards: CardData[];
     mapping: FieldMapping;
     options: ExportOptions;
     gameId: string;
+    cardSizePreset?: CardSizePresetName;
+    cardWidthInches?: number;
+    cardHeightInches?: number;
+    landscape?: boolean;
   };
+
+  const dims = resolveDeckDims({ cardSizePreset, cardWidthInches, cardHeightInches, landscape });
 
   const selectedCards = options.selectedCards.length > 0
     ? options.selectedCards.map(i => cards[i])
@@ -64,7 +81,7 @@ exportRouter.post('/', async (req, res) => {
   res.json({ jobId });
 
   // Run export asynchronously
-  runExport(jobId, templateId, selectedCards, mapping, options, gameId).catch((err) => {
+  runExport(jobId, templateId, selectedCards, mapping, options, gameId, dims).catch((err) => {
     const j = jobs.get(jobId);
     if (j) {
       j.status = 'error';
@@ -138,10 +155,29 @@ exportRouter.get('/:jobId', (req, res) => {
   res.json(job);
 });
 
-async function renderCardBack(gameCardbackDir: string, cardBackImage: string): Promise<Buffer> {
+function resolveDeckDims(deck: { cardSizePreset?: CardSizePresetName; cardWidthInches?: number; cardHeightInches?: number; landscape?: boolean }) {
+  const preset = deck.cardSizePreset;
+  let w = CARD_WIDTH_INCHES;
+  let h = CARD_HEIGHT_INCHES;
+  if (preset && preset !== 'custom' && CARD_SIZE_PRESETS[preset]) {
+    w = CARD_SIZE_PRESETS[preset].width;
+    h = CARD_SIZE_PRESETS[preset].height;
+  } else if (preset === 'custom' && deck.cardWidthInches && deck.cardHeightInches) {
+    w = deck.cardWidthInches;
+    h = deck.cardHeightInches;
+  }
+  return resolveCardDimensions(w, h, deck.landscape);
+}
+
+async function renderCardBack(
+  gameCardbackDir: string,
+  cardBackImage: string,
+  widthPx: number = CARD_WIDTH_PX,
+  heightPx: number = CARD_HEIGHT_PX
+): Promise<Buffer> {
   const imagePath = path.join(gameCardbackDir, cardBackImage);
   return sharp(imagePath)
-    .resize(CARD_WIDTH_PX, CARD_HEIGHT_PX, { fit: 'cover' })
+    .resize(widthPx, heightPx, { fit: 'cover' })
     .withMetadata({ density: TARGET_DPI })
     .png()
     .toBuffer();
@@ -153,7 +189,8 @@ async function runExport(
   cards: CardData[],
   mapping: FieldMapping,
   options: ExportOptions,
-  gameId: string
+  gameId: string,
+  dims?: import('@cardmaker/shared').ResolvedCardDimensions
 ) {
   const job = jobs.get(jobId)!;
   job.status = 'processing';
@@ -162,12 +199,16 @@ async function runExport(
 
   const artworkBaseUrl = artworkUrl(gameId);
   const gameCardbackDir = cardbackDir(gameId);
+  const wCss = dims?.widthCss;
+  const hCss = dims?.heightCss;
+  const wPx = dims?.widthPx ?? CARD_WIDTH_PX;
+  const hPx = dims?.heightPx ?? CARD_HEIGHT_PX;
 
   // Render all cards to PNG
   const pngs: Buffer[] = [];
   for (let i = 0; i < cards.length; i++) {
-    const html = await buildCardPage(templateId, cards[i], mapping, artworkBaseUrl);
-    const png = await renderCardToPng(html);
+    const html = await buildCardPage(templateId, cards[i], mapping, artworkBaseUrl, wCss, hCss);
+    const png = await renderCardToPng(html, wCss, hCss);
     pngs.push(png);
     job.completed = i + 1;
     job.progress = Math.round(((i + 1) / cards.length) * (options.format === 'png' ? 90 : 80));
@@ -176,7 +217,7 @@ async function runExport(
   // Render card back if requested
   let cardBackBuffer: Buffer | undefined;
   if (options.includeCardBack && options.cardBackImage) {
-    cardBackBuffer = await renderCardBack(gameCardbackDir, options.cardBackImage);
+    cardBackBuffer = await renderCardBack(gameCardbackDir, options.cardBackImage, wPx, hPx);
   }
 
   const timestamp = Date.now();
@@ -199,13 +240,15 @@ async function runExport(
     const pdfBytes = await composePdf(allPngs, {
       pageSize: options.pdfPageSize ?? 'letter',
       cropMarks: options.pdfCropMarks ?? true,
+      cardWidthInches: dims?.widthInches,
+      cardHeightInches: dims?.heightInches,
     });
     const filename = `cards-${timestamp}.pdf`;
     await fs.writeFile(path.join(OUTPUT_DIR, filename), pdfBytes);
     job.outputPath = `/output/${filename}`;
     job.progress = 100;
   } else if (options.format === 'tts') {
-    const spriteSheet = await composeTtsSpriteSheet(pngs, options.ttsColumns);
+    const spriteSheet = await composeTtsSpriteSheet(pngs, options.ttsColumns, wPx, hPx);
     const filename = `tts-sheet-${timestamp}.png`;
     await fs.writeFile(path.join(OUTPUT_DIR, filename), spriteSheet);
     job.outputPath = `/output/${filename}`;
@@ -223,7 +266,7 @@ async function runExport(
 async function runGameExport(
   jobId: string,
   game: import('@cardmaker/shared').Game,
-  decks: import('@cardmaker/shared').Deck[],
+  decks: Deck[],
   options: ExportOptions
 ) {
   const job = jobs.get(jobId)!;
@@ -238,7 +281,7 @@ async function runGameExport(
   const gameCardbackDir = cardbackDir(game.id);
 
   // First pass: fetch all deck data to get total card count
-  const deckData: { deck: typeof decks[0]; cards: CardData[] }[] = [];
+  const deckData: { deck: Deck; cards: CardData[] }[] = [];
   for (const deck of decks) {
     const csvUrl = buildTabCsvUrl(game.sheetUrl, deck.sheetTabGid);
     const sheetData = await fetchSheetData(csvUrl);
@@ -253,11 +296,13 @@ async function runGameExport(
     const deckDir = path.join(gameDir, safeDeckName);
     await fs.mkdir(deckDir, { recursive: true });
 
+    const dims = resolveDeckDims(deck);
+
     // Render all cards in this deck
     const pngs: Buffer[] = [];
     for (let i = 0; i < cards.length; i++) {
-      const html = await buildCardPage(deck.templateId, cards[i], deck.mapping, artworkBaseUrl);
-      const png = await renderCardToPng(html);
+      const html = await buildCardPage(deck.templateId, cards[i], deck.mapping, artworkBaseUrl, dims.widthCss, dims.heightCss);
+      const png = await renderCardToPng(html, dims.widthCss, dims.heightCss);
       pngs.push(png);
       totalCompleted++;
       job.completed = totalCompleted;
@@ -267,7 +312,7 @@ async function runGameExport(
     // Render card back if present
     let cardBackBuffer: Buffer | undefined;
     if (deck.cardBackImage) {
-      cardBackBuffer = await renderCardBack(gameCardbackDir, deck.cardBackImage);
+      cardBackBuffer = await renderCardBack(gameCardbackDir, deck.cardBackImage, dims.widthPx, dims.heightPx);
     }
 
     if (options.format === 'png') {
@@ -283,12 +328,14 @@ async function runGameExport(
       const pdfBytes = await composePdf(allPngs, {
         pageSize: options.pdfPageSize ?? 'letter',
         cropMarks: options.pdfCropMarks ?? true,
+        cardWidthInches: dims.widthInches,
+        cardHeightInches: dims.heightInches,
       });
       const filename = `${safeDeckName}.pdf`;
       await fs.writeFile(path.join(deckDir, filename), pdfBytes);
       job.outputPaths!.push(path.join(deckDir, filename));
     } else if (options.format === 'tts') {
-      const spriteSheet = await composeTtsSpriteSheet(pngs, options.ttsColumns);
+      const spriteSheet = await composeTtsSpriteSheet(pngs, options.ttsColumns, dims.widthPx, dims.heightPx);
       const filename = `${safeDeckName}-tts.png`;
       await fs.writeFile(path.join(deckDir, filename), spriteSheet);
       if (cardBackBuffer) {
