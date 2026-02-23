@@ -11,20 +11,8 @@ shared/dist/
 server/dist/
 client/dist/
 
-# Export outputs
-output/
-
-# User content
-games/
-
-# Templates (except example)
-server/templates/*
-!server/templates/example/
-
-# Local data
-.cardmaker-data.json
+# Legacy data files (migrated to external data folder)
 .cardmaker-data.json.bak
-.cardmaker-defaults.json
 .cardmaker-defaults.json.bak
 
 # Chrome for Testing (downloaded by scripts/download-chrome.js)
