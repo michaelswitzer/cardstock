@@ -175,9 +175,14 @@ export default function DeckView() {
             </button>
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            Sheet: {deck.sheetTabName} &middot; Template:{' '}
+            Size:{' '}
+            {deck.cardSizePreset === 'custom'
+              ? `${deckDims.widthInches}" × ${deckDims.heightInches}"`
+              : (CARD_SIZE_PRESETS[deck.cardSizePreset as keyof typeof CARD_SIZE_PRESETS]?.label ?? 'Poker')
+            }
+            {deck.landscape ? ' (landscape)' : ''}
+            {' '}&middot; Sheet: {deck.sheetTabName} &middot; Template:{' '}
             <Link to={`/templates/${deck.templateId}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>{templateName}</Link>
-            {' '}&middot; {deckDims.widthInches}" x {deckDims.heightInches}"{deck.landscape ? ' (Landscape)' : ''}
             {deck.cardBackImage && <> &middot; Card Back: {deck.cardBackImage}</>}
           </p>
         </div>

@@ -6,6 +6,7 @@ import { useDeleteDeck } from '../hooks/useDecks';
 import { fetchCovers, fetchTemplates, openGameFolder } from '../api/client';
 import ExportModal from '../components/ExportModal';
 import AssetBrowser from '../components/AssetBrowser';
+import { CARD_SIZE_PRESETS } from '@cardmaker/shared';
 
 export default function GameView() {
   const { id } = useParams<{ id: string }>();
@@ -215,7 +216,13 @@ export default function GameView() {
               >
                 <div style={{ fontWeight: 600 }}>{deck.name}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  Sheet: {deck.sheetTabName} &middot; Template:{' '}
+                  Size:{' '}
+                  {deck.cardSizePreset === 'custom'
+                    ? `${deck.cardWidthInches ?? '?'}" × ${deck.cardHeightInches ?? '?'}"`
+                    : (CARD_SIZE_PRESETS[deck.cardSizePreset as keyof typeof CARD_SIZE_PRESETS]?.label ?? 'Poker')
+                  }
+                  {deck.landscape ? ' (landscape)' : ''}
+                  {' '}&middot; Sheet: {deck.sheetTabName} &middot; Template:{' '}
                   <a
                     href={`/templates/${deck.templateId}`}
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/templates/${deck.templateId}`); }}
