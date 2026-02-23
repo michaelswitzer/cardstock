@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import net from 'net';
+import os from 'os';
 import Store from 'electron-store';
 import { fileURLToPath, pathToFileURL } from 'url';
 
@@ -99,27 +100,72 @@ function seedTemplates(dataFolder: string): void {
   }
 }
 
+function getDefaultDataFolder(): string {
+  return path.join(os.homedir(), 'Documents', 'Cardstock');
+}
+
+function setupDataFolder(folderPath: string): void {
+  for (const sub of ['games', 'output', 'templates']) {
+    fs.mkdirSync(path.join(folderPath, sub), { recursive: true });
+  }
+  seedTemplates(folderPath);
+}
+
+function showWelcomeScreen(): Promise<string> {
+  // Hide splash while welcome screen is showing
+  splashWindow?.hide();
+
+  return new Promise<string>((resolve, reject) => {
+    const iconPath = path.join(PROJECT_ROOT, 'electron', 'icon.png');
+    const welcomeWin = new BrowserWindow({
+      width: 520,
+      height: 440,
+      frame: false,
+      resizable: false,
+      icon: iconPath,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        contextIsolation: true,
+        nodeIntegration: false,
+      },
+    });
+
+    let resolved = false;
+
+    ipcMain.handle('welcome-done', (_event, folderPath: string) => {
+      if (!resolved) {
+        resolved = true;
+        welcomeWin.close();
+        splashWindow?.show();
+        resolve(folderPath);
+      }
+    });
+
+    welcomeWin.on('closed', () => {
+      ipcMain.removeHandler('welcome-done');
+      if (!resolved) {
+        reject(new Error('No data folder selected'));
+      }
+    });
+
+    welcomeWin.loadFile(path.join(PROJECT_ROOT, 'electron', 'welcome.html'));
+  });
+}
+
 async function ensureDataFolder(): Promise<string> {
   let dataFolder = store.get('dataFolder');
 
   if (!dataFolder || !fs.existsSync(dataFolder)) {
-    const chosen = await pickDataFolder();
-    if (!chosen) {
-      // User cancelled — quit
+    try {
+      dataFolder = await showWelcomeScreen();
+    } catch {
       app.quit();
       throw new Error('No data folder selected');
     }
-    dataFolder = chosen;
-    store.set('dataFolder', dataFolder);
   }
 
   // Ensure subdirectories exist
-  for (const sub of ['games', 'output', 'templates']) {
-    fs.mkdirSync(path.join(dataFolder, sub), { recursive: true });
-  }
-
-  // Seed templates if the folder is empty
-  seedTemplates(dataFolder);
+  setupDataFolder(dataFolder);
 
   return dataFolder;
 }
@@ -128,17 +174,17 @@ async function ensureDataFolder(): Promise<string> {
 
 ipcMain.handle('get-data-folder', () => store.get('dataFolder'));
 
+ipcMain.handle('get-default-data-folder', () => getDefaultDataFolder());
+
 ipcMain.handle('pick-data-folder', async () => {
   const chosen = await pickDataFolder();
-  if (chosen) {
-    store.set('dataFolder', chosen);
-    // Ensure subdirectories exist in the new folder
-    for (const sub of ['games', 'output', 'templates']) {
-      fs.mkdirSync(path.join(chosen, sub), { recursive: true });
-    }
-    seedTemplates(chosen);
-  }
   return chosen;
+});
+
+ipcMain.handle('use-data-folder', (_event, folderPath: string) => {
+  store.set('dataFolder', folderPath);
+  setupDataFolder(folderPath);
+  return folderPath;
 });
 
 ipcMain.handle('restart-app', () => {
@@ -268,11 +314,11 @@ function createMainWindow(): BrowserWindow {
 
 app.whenReady().then(async () => {
   try {
-    // 1. Pick data folder (may show dialog)
-    const dataFolder = await ensureDataFolder();
-
-    // 2. Show splash
+    // 1. Show splash immediately to claim taskbar with correct icon
     splashWindow = createSplash();
+
+    // 2. Pick data folder (may show welcome screen)
+    const dataFolder = await ensureDataFolder();
 
     // 3. Set env vars for the server
     process.env.CARDMAKER_DATA_ROOT = dataFolder;

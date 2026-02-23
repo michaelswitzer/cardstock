@@ -38,6 +38,7 @@
     "files": [
       "electron/dist/**/*",
       "electron/icon.png",
+      "electron/welcome.html",
       "server/dist/**/*",
       "server/package.json",
       "shared/dist/**/*",

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cardstock</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-app-region: drag;
+      user-select: none;
+      padding: 40px;
+    }
+
+    button, a, input { -webkit-app-region: no-drag; }
+
+    .spade {
+      font-size: 48px;
+      color: #7c5cbf;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #999;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 32px;
+      max-width: 380px;
+    }
+
+    .folder-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      align-self: flex-start;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .folder-box {
+      background: #12121e;
+      border: 1px solid #2a2a40;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #ccc;
+      width: 100%;
+      max-width: 400px;
+      word-break: break-all;
+      line-height: 1.4;
+      margin-bottom: 24px;
+      min-height: 42px;
+    }
+
+    .btn-primary {
+      background: #7c5cbf;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 40px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 16px;
+    }
+    .btn-primary:hover { background: #6a4dab; }
+    .btn-primary:active { background: #5a3f99; }
+
+    .change-link {
+      color: #7c5cbf;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+    .change-link:hover { text-decoration: underline; }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      -webkit-app-region: no-drag;
+    }
+    .close-btn:hover { background: #2a2a40; color: #ccc; }
+  </style>
+</head>
+<body>
+  <button class="close-btn" id="closeBtn">&times;</button>
+
+  <div class="spade">&#9824;</div>
+  <h1>Cardstock</h1>
+  <p class="subtitle">
+    Your games, artwork, and exports are stored in a local folder.
+  </p>
+
+  <div class="folder-label">Data folder</div>
+  <div class="folder-box" id="folderPath">Loading...</div>
+
+  <button class="btn-primary" id="getStartedBtn">Get Started</button>
+  <button class="change-link" id="changeFolderBtn">Choose a different folder</button>
+
+  <script>
+    let currentPath = '';
+
+    async function init() {
+      currentPath = await window.cardstock.getDefaultDataFolder();
+      document.getElementById('folderPath').textContent = currentPath;
+    }
+
+    document.getElementById('getStartedBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('getStartedBtn');
+      btn.textContent = 'Setting up...';
+      btn.disabled = true;
+      await window.cardstock.useDataFolder(currentPath);
+      await window.cardstock.welcomeDone(currentPath);
+    });
+
+    document.getElementById('changeFolderBtn').addEventListener('click', async () => {
+      const chosen = await window.cardstock.pickDataFolder();
+      if (chosen) {
+        currentPath = chosen;
+        document.getElementById('folderPath').textContent = currentPath;
+      }
+    });
+
+    document.getElementById('closeBtn').addEventListener('click', () => {
+      window.close();
+    });
+
+    init();
+  </script>
+</body>
+</html>

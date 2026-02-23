@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGames } from '../hooks/useGames';
 import CreateGameModal from '../components/CreateGameModal';
+import ChangeFolderModal from '../components/ChangeFolderModal';
 
 declare global {
   interface Window {
     cardstock?: {
       getDataFolder: () => Promise<string>;
+      getDefaultDataFolder: () => Promise<string>;
       pickDataFolder: () => Promise<string | null>;
+      useDataFolder: (folderPath: string) => Promise<string>;
+      welcomeDone: (folderPath: string) => Promise<void>;
       restartApp: () => Promise<void>;
       minimizeWindow: () => void;
       maximizeWindow: () => void;
@@ -35,6 +39,7 @@ export default function GamesInventory() {
   const { data: games, isLoading } = useGames();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
+  const [showChangeFolder, setShowChangeFolder] = useState(false);
   const [dataFolder, setDataFolder] = useState<string | null>(null);
   const isElectron = !!window.cardstock;
 
@@ -44,23 +49,14 @@ export default function GamesInventory() {
     }
   }, []);
 
-  const handleChangeFolder = async () => {
-    if (!window.cardstock) return;
-    const chosen = await window.cardstock.pickDataFolder();
-    if (chosen) {
-      // Restart the whole Electron app so the server picks up the new folder
-      await window.cardstock.restartApp();
-    }
-  };
-
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-5)' }}>
         <h1 style={{ fontSize: 26 }}>Games</h1>
         <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
           {isElectron && (
-            <button className="secondary" onClick={handleChangeFolder} title={dataFolder ?? undefined}>
-              Change Folder
+            <button className="secondary" onClick={() => setShowChangeFolder(true)} title={dataFolder ?? undefined}>
+              Change Data Folder
             </button>
           )}
           <button className="primary" onClick={() => setShowCreate(true)}>
@@ -137,6 +133,12 @@ export default function GamesInventory() {
       <CreateGameModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
+      />
+
+      <ChangeFolderModal
+        open={showChangeFolder}
+        onClose={() => setShowChangeFolder(false)}
+        currentFolder={dataFolder}
       />
     </div>
   );
