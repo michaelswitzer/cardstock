@@ -19,6 +19,7 @@ const isDev = !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
 let serverPort = 3001;
+const appIcon = path.join(PROJECT_ROOT, 'electron', process.platform === 'win32' ? 'icon.ico' : 'icon.png');
 
 // --- Cross-platform Chrome binary discovery ---
 
@@ -116,7 +117,7 @@ function showWelcomeScreen(): Promise<string> {
   splashWindow?.hide();
 
   return new Promise<string>((resolve, reject) => {
-    const iconPath = path.join(PROJECT_ROOT, 'electron', 'icon.png');
+    const iconPath = appIcon;
     const welcomeWin = new BrowserWindow({
       width: 520,
       height: 440,
@@ -213,15 +214,15 @@ ipcMain.on('window-close', () => {
 // --- Splash window ---
 
 function createSplash(): BrowserWindow {
-  const iconPath = path.join(PROJECT_ROOT, 'electron', 'icon.png');
+  const iconPath = appIcon;
   const splash = new BrowserWindow({
     width: 360,
     height: 240,
     frame: false,
-    transparent: true,
     resizable: false,
     alwaysOnTop: true,
     icon: iconPath,
+    backgroundColor: '#1a1a2e',
     webPreferences: { nodeIntegration: false, contextIsolation: true },
   });
 
@@ -233,7 +234,7 @@ function createSplash(): BrowserWindow {
       body {
         margin: 0; display: flex; align-items: center; justify-content: center;
         height: 100vh; background: #1a1a2e; color: #e0e0e0;
-        font-family: 'Segoe UI', sans-serif; border-radius: 12px;
+        font-family: 'Segoe UI', sans-serif;
         flex-direction: column; gap: 16px;
         -webkit-app-region: drag;
       }
@@ -289,7 +290,7 @@ async function startServer(): Promise<void> {
 // --- Main window ---
 
 function createMainWindow(): BrowserWindow {
-  const iconPath = path.join(PROJECT_ROOT, 'electron', 'icon.png');
+  const iconPath = appIcon;
 
   const win = new BrowserWindow({
     width: 1400,
