@@ -143,6 +143,7 @@ ipcMain.on('window-close', () => {
 // --- Splash window ---
 
 function createSplash(): BrowserWindow {
+  const iconPath = path.join(PROJECT_ROOT, 'electron', 'icon.png');
   const splash = new BrowserWindow({
     width: 360,
     height: 240,
@@ -150,6 +151,7 @@ function createSplash(): BrowserWindow {
     transparent: true,
     resizable: false,
     alwaysOnTop: true,
+    icon: iconPath,
     webPreferences: { nodeIntegration: false, contextIsolation: true },
   });
 
