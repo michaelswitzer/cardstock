@@ -19,7 +19,7 @@ const isDev = !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
 let serverPort = 3001;
-const appIcon = path.join(PROJECT_ROOT, 'electron', process.platform === 'win32' ? 'icon.ico' : 'icon.png');
+const appIcon = path.join(PROJECT_ROOT, 'electron', process.platform === 'win32' ? 'icon.ico' : 'icon-mac.png');
 
 // --- Cross-platform Chrome binary discovery ---
 

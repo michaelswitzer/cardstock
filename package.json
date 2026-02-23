@@ -38,6 +38,7 @@
     "files": [
       "electron/dist/**/*",
       "electron/icon.png",
+      "electron/icon-mac.png",
       "electron/welcome.html",
       "server/dist/**/*",
       "server/package.json",
@@ -67,7 +68,7 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "electron/icon.png"
+      "icon": "electron/icon-mac.png"
     },
     "dmg": {
       "contents": [
