@@ -86,14 +86,15 @@ export default function DeckView() {
     return () => { cancelled = true; };
   }, [deck?.id, gameData?.game.sheetUrl]);
 
-  // Stable serialization of mapping for dependency comparison
+  // Stable serialization of mapping and dimensions for dependency comparison
   const mappingKey = JSON.stringify(deck?.mapping ?? {});
+  const dimsKey = JSON.stringify(dimsInput ?? {});
 
   // Render card images when data is available
   useEffect(() => {
     if (!deck || !deckId || rows.length === 0 || Object.keys(deck.mapping).length === 0) return;
 
-    const inputsKey = JSON.stringify({ t: deck.templateId, m: deck.mapping, r: rows });
+    const inputsKey = JSON.stringify({ t: deck.templateId, m: deck.mapping, r: rows, d: dimsInput });
     if (cardImages.length > 0 && inputsKey === cardImagesKey) return;
 
     const key = ++renderKey.current;
@@ -110,7 +111,7 @@ export default function DeckView() {
         console.error('Batch preview failed:', err);
         if (renderKey.current === key) setLoading(false);
       });
-  }, [deck?.templateId, mappingKey, rows]);
+  }, [deck?.templateId, mappingKey, rows, dimsKey]);
 
   const handleRefresh = async () => {
     if (!deck || !gameData || !deckId) return;
