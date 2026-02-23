@@ -14,8 +14,8 @@
     "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
     "build:electron": "npm run build && cd electron && npx tsc && npx tsc -p tsconfig.preload.json && cd .. && node scripts/copy-client-dist.js",
     "dist": "node scripts/dist.js",
-    "dist:win": "npm run build:electron && node scripts/download-chrome.js && node scripts/setup-codesign-cache.js && npx electron-builder --win",
-    "dist:mac": "npm run build:electron && node scripts/download-chrome.js && npx electron-builder --mac"
+    "dist:win": "npm run build:electron && node scripts/download-chrome.js && node scripts/setup-codesign-cache.js && npx electron-builder --win --publish never",
+    "dist:mac": "npm run build:electron && node scripts/download-chrome.js && npx electron-builder --mac --publish never"
   },
   "devDependencies": {
     "@puppeteer/browsers": "^2.12.1",
