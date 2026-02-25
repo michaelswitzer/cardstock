@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { CardData, CardTemplate, FieldMapping } from '@cardmaker/shared';
-import { CARD_WIDTH_CSS, CARD_HEIGHT_CSS } from '@cardmaker/shared';
+import { CARD_WIDTH_CSS, CARD_HEIGHT_CSS, SERVER_PORT } from '@cardmaker/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const TEMPLATES_DIR = process.env.CARDMAKER_TEMPLATES_DIR
@@ -58,7 +58,8 @@ export function hydrateTemplate(
   html: string,
   cardData: CardData,
   mapping: FieldMapping,
-  artworkBaseUrl: string
+  artworkBaseUrl: string,
+  templateId: string
 ): string {
   let result = html;
 
@@ -84,6 +85,12 @@ export function hydrateTemplate(
   // Replace {icon:name} with inline images from resources/
   result = result.replace(/\{icon:(\w+)\}/g, (_match, name: string) => {
     return `<img src="${artworkBaseUrl}/artwork/icons/${encodeURIComponent(name)}.png" class="inline-icon" />`;
+  });
+
+  // Replace {{template:filename}} with URL to template-local asset
+  const port = process.env.PORT ?? SERVER_PORT;
+  result = result.replace(/\{\{template:([^}]+)\}\}/g, (_match, filename: string) => {
+    return `http://localhost:${port}/templates/${encodeURIComponent(templateId)}/${filename.split('/').map(encodeURIComponent).join('/')}`;
   });
 
   // Convert markdown-style formatting to HTML tags
@@ -124,7 +131,7 @@ export async function buildCardPage(
 ): Promise<string> {
   const { html: templateHtml, css: templateCss } = await loadTemplatePair(templateId);
 
-  const hydratedBody = hydrateTemplate(templateHtml, cardData, mapping, artworkBaseUrl);
+  const hydratedBody = hydrateTemplate(templateHtml, cardData, mapping, artworkBaseUrl, templateId);
 
   return `<!DOCTYPE html>
 <html>

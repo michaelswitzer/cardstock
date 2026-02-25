@@ -46,7 +46,7 @@ Express API on port 3001. Routes follow a pattern: each file in `routes/` export
 
 **Data persistence:** Each game has its own folder under `games/<slug>/` containing a `game.json` file with the game record and embedded decks array. CRUD operations via `services/dataStore.ts`. In-memory indexes (`gameIndex`, `deckIndex`) built on startup for fast lookups. On startup, legacy `.cardmaker-defaults.json` or `.cardmaker-data.json` files are auto-migrated to per-game folders.
 
-**Rendering pipeline:** Template HTML/CSS loaded from `server/templates/<id>/` → placeholders hydrated (`{{field}}` for text, `{{image:slot}}` for artwork URLs, `{icon:name}` for icons) → Puppeteer screenshots the page → sharp adds DPI metadata for export.
+**Rendering pipeline:** Template HTML/CSS loaded from `server/templates/<id>/` → placeholders hydrated (`{{field}}` for text, `{{image:slot}}` for artwork URLs, `{icon:name}` for icons, `{{template:filename}}` for template-local assets) → Puppeteer screenshots the page → sharp adds DPI metadata for export. Templates can include static image files (borders, textures, backgrounds); reference them in CSS with `url(/templates/<id>/filename)` or in HTML with `{{template:filename}}`.
 
 **Key rendering constants:** 100 CSS px = 1 inch. Cards are 250×350 CSS px. Puppeteer renders at `deviceScaleFactor: 3` producing 750×1050 px output at 300 DPI.
 

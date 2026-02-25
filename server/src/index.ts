@@ -12,6 +12,7 @@ import { decksRouter } from './routes/decks.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { warmUp } from './services/renderer.js';
 import { migrateDefaults, initGameIndex } from './services/dataStore.js';
+import { TEMPLATES_DIR } from './services/templateEngine.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = process.env.CARDMAKER_DATA_ROOT
@@ -25,6 +26,9 @@ app.use(express.json({ limit: '10mb' }));
 // Serve per-game files (artwork, cardbacks, icons, covers)
 // Only accessed directly by Puppeteer (localhost:3001); client uses API endpoints
 app.use('/games', express.static(path.join(PROJECT_ROOT, 'games')));
+
+// Serve template assets (borders, backgrounds, textures bundled with templates)
+app.use('/templates', express.static(TEMPLATES_DIR));
 
 // Serve export output files
 const OUTPUT_DIR = process.env.CARDMAKER_OUTPUT_DIR
