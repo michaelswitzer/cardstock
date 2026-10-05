@@ -5,70 +5,76 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run build            # Build all workspaces (shared → server → client)
-npm run build -w shared  # Build shared package (must run first if types changed)
-npm run build:electron   # Build all + compile Electron + copy client dist
-npm run dist             # Full Electron installer build (includes Chrome download)
+npm run build      # Build shared types + client, copy client/dist → app/web/dist (embedded by Go)
+npm run app        # build + compile app/cardstock(.exe) for this machine
+npm run release    # build + cross-compile unzip-and-run archives for every OS into app/dist/
+npm test           # Go unit tests (app/internal/...)
 ```
 
-No test framework is currently configured.
+Go commands go through `node scripts/go.js <args>`, which runs them in `app/` with `CGO_ENABLED=0` (the app is pure Go). The Go module needs Go 1.26+.
 
 ## Running Dev Servers
 
-**Start server and client as separate background processes** rather than using `npm run dev` (which uses concurrently). The `tsx watch` server often fails to start silently under concurrently.
+Start the Go server and Vite as separate background processes:
 
 ```bash
-cd server && npx tsx src/index.ts    # Server on port 3001
-cd client && npx vite                # Client on port 5173
+cd app && go run . --data ../devdata --port 3001 --ui=none --no-exit   # API on 127.0.0.1:3001
+cd client && npx vite                                                  # Client on :5173, proxies to 3001
 ```
 
-Verify the server is working by confirming it prints "Cardstock server running on http://localhost:3001". If it doesn't appear, check for stale processes.
+Verify the server prints "server running on http://127.0.0.1:3001". `--ui=none --no-exit` stops it from opening a window and from exiting when no UI heartbeat arrives. `--chrome /path/to/chromium` picks the rendering browser.
 
-**Stale processes:** Previous dev sessions frequently leave orphaned node/vite processes holding ports 3001, 5173, or 5174. Before starting, check and kill them:
-```bash
-netstat -ano | findstr "LISTENING" | findstr ":3001 :5173 :5174"
-taskkill //PID <pid> //F    # Use //PID not /PID in Git Bash on Windows
-```
+**Stale processes:** kill whatever holds ports 3001/5173/5174 before starting (`lsof -ti tcp:3001 | xargs kill`; on Windows Git Bash `netstat -ano | findstr "LISTENING" | findstr ":3001"` then `taskkill //PID <pid> //F`).
 
-**Server auto-reloads** when run via `tsx watch` (the `npm run dev -w server` script), but when started directly with `npx tsx src/index.ts` it does not. After changing server code, restart the server process manually.
-
-**Auto-restart rule:** Whenever you make changes to server code, automatically restart the server (kill the old process, start a new one) without waiting for the user to ask. Template HTML/CSS is read from disk on every render (no caching), so template changes take effect immediately without a server restart.
+**Auto-restart rule:** Whenever you change Go code under `app/`, restart the server (kill the old process, start a new one) without waiting for the user to ask. Template HTML/CSS is read from disk on every render (no caching), so template changes take effect immediately without a restart.
 
 ## Architecture
 
-Monorepo with three npm workspaces: `shared/`, `server/`, `client/`.
+Two parts: a Go program (`app/`) that is the whole desktop app, and a React client (`client/`) that the Go binary embeds. `shared/` holds TypeScript types/constants used by the client (npm workspaces: `shared`, `client`).
 
-### Shared (`shared/src/`)
-Types and constants consumed by both server and client. Exports from `types.ts` (all interfaces) and `constants.ts` (dimensions, DPI, ports). Must be built before server/client can use new types.
+### App (`app/`)
+A single static binary (~10 MB, no installer). On launch it resolves the data folder, starts an HTTP server on 127.0.0.1 (first free port from 3001), opens the UI, and renders cards through a headless Chromium over the DevTools protocol (chromedp v0.14).
 
-### Server (`server/src/`)
-Express API on port 3001. Routes follow a pattern: each file in `routes/` exports a Router, registered in `index.ts`. Services are pure async functions (no classes).
+- `main.go` — flags, data-folder resolution, single-instance check (`<data>/.cardstock-port`), shutdown
+- `embed.go` — embeds `web/dist` (client build) and `templates/` (starter templates seeded into new data folders)
+- `internal/config` — constants (mirror `shared/src/constants.ts`) and the mutable data-root paths
+- `internal/store` — games/decks persistence (`games/<slug>/game.json`), in-memory indexes, legacy migration
+- `internal/sheets` — Google Sheets CSV fetch + pubhtml tab discovery (`ParseTabs`)
+- `internal/tmpl` — template loading and placeholder hydration
+- `internal/render` — headless browser discovery/download, tab pool, screenshots
+- `internal/imaging` — thumbnails, card-back cover resize, TTS sprite sheets, PNG DPI (pHYs) metadata
+- `internal/export` — async export jobs: PNG folders, PDF (gopdf) with crop marks, TTS sheets
+- `internal/api` — HTTP routes; paths and JSON shapes match `client/src/api/client.ts`
+- `internal/launcher` — opens the UI window, native folder picker, open-folder, Windows message box
+- `tools/release` — cross-compiles and packages release archives (macOS `.app` bundle, Windows icon via go-winres)
 
-**Data persistence:** Each game has its own folder under `games/<slug>/` containing a `game.json` file with the game record and embedded decks array. CRUD operations via `services/dataStore.ts`. In-memory indexes (`gameIndex`, `deckIndex`) built on startup for fast lookups. On startup, legacy `.cardmaker-defaults.json` or `.cardmaker-data.json` files are auto-migrated to per-game folders.
+**Data folder:** `--data` flag → folder saved in `<UserConfigDir>/cardstock/config.json` (set by "Change Data Folder" in the UI) → the folder next to the executable (next to `Cardstock.app` on macOS) if writable and not `/Applications` → `~/Documents/Cardstock`. It contains `games/`, `templates/`, `output/` and `cardstock.log`. In portable mode a `renderer/` folder (downloaded browser + profiles) sits next to the executable as well.
 
-**Rendering pipeline:** Template HTML/CSS loaded from `server/templates/<id>/` → placeholders hydrated (`{{field}}` for text, `{{image:slot}}` for artwork URLs, `{icon:name}` for icons, `{{template:filename}}` for template-local assets) → Puppeteer screenshots the page → sharp adds DPI metadata for export. Templates can include static image files (borders, textures, backgrounds); reference them in CSS with `url(/templates/<id>/filename)` or in HTML with `{{template:filename}}`.
+**UI window & lifetime:** If a Chromium-family browser is installed, the UI opens as an app-mode window (`--app=URL`, separate `ui-profile` in the renderer folder); otherwise in the default browser (`--ui=auto|app|browser|none`). The client posts `/api/app/heartbeat` every 5 s and a `/api/app/bye` beacon on `pagehide`; the app exits ~12 s after the last window closes (90 s without heartbeats as a fallback, since background tabs are throttled). Launching a second copy on the same data folder just opens another window on the running one.
 
-**Key rendering constants:** 100 CSS px = 1 inch. Cards are 250×350 CSS px. Puppeteer renders at `deviceScaleFactor: 3` producing 750×1050 px output at 300 DPI.
+**Rendering pipeline:** Template HTML/CSS loaded from `<data>/templates/<id>/` → placeholders hydrated (`{{field}}` for text, `{{image:slot}}` for artwork URLs, `{icon:name}` for icons, `{{template:filename}}` for template-local assets) → the page is served at `/__render/<id>` and loaded by a headless tab (so relative `/templates/...` and `/games/...` URLs resolve) → screenshot with a transparent background → pHYs chunk set to 300 DPI for export. Templates can include static image files; reference them in CSS with `url(/templates/<id>/filename)` or in HTML with `{{template:filename}}`.
 
-**Sheet tab discovery:** `services/googleSheets.ts` has `discoverTabs(url)` which fetches the pubhtml page and parses embedded JS for tab names and gids.
+**Renderer browser:** `--chrome` / `CARDSTOCK_CHROME` → installed Chrome/Edge/Chromium/Brave/Vivaldi → on NixOS, `nix build nixpkgs#chromium` linked to `<renderer>/chromium` (the link is also a GC root) → previously downloaded `chrome-headless-shell` → download one from Chrome for Testing into `<renderer>/chrome-headless-shell/`. `<renderer>` is a `renderer/` folder next to the executable in portable mode (`render.SetHomeDir`), else `<UserCacheDir>/cardstock/`; browser profiles (`render-profile`, `ui-profile`) live there too. `/api/app/status` reports download progress/target and, after a download in this run, `downloaded` so the client can confirm where it went (`components/AppStatus.tsx`). `CARDSTOCK_RENDERER=download` forces the Chrome for Testing download (even on NixOS, where it can't start for lack of system libs). On NixOS the app also unsets `LD_LIBRARY_PATH`, which can break nixpkgs Chromium. Firefox can't render (no CDP) but works fine as the UI browser.
 
-**Export is async:** `POST /api/export` returns a job ID immediately. The job runs in the background, client polls `GET /api/export/:jobId` for progress. `POST /api/export/game` exports all decks in a game to subfolders. Card backs are exported as separate files. Output goes to `output/` directory.
+**Key rendering constants:** 100 CSS px = 1 inch. Cards are 250×350 CSS px. Rendered at device scale factor 3 → 750×1050 px at 300 DPI.
 
-**Templates** are filesystem-based in `server/templates/<id>/` with three files: `manifest.json` (fields, image slots, dimensions), `template.html` (with `{{placeholder}}` syntax), `template.css`.
+**Export is async:** `POST /api/export` returns a job ID immediately; the client polls `GET /api/export/:jobId`. `POST /api/export/game` exports all decks in a game to subfolders. Card backs are exported as separate files. Output goes to `<data>/output/`, served at `/output`.
+
+**Templates** are folders in `<data>/templates/<id>/` with `manifest.json` (fields, image slots), `template.html` (`{{placeholder}}` syntax) and `template.css`. The bundled starter templates live in `app/templates/`.
 
 **API Routes:**
-- `/api/games` — CRUD for games (projects tied to a Google Sheet)
+- `/api/games` — CRUD for games (projects tied to a Google Sheet); `/api/games/:id/open-folder`
 - `/api/games/:gameId/decks` — list/create decks under a game
 - `/api/decks/:id` — get/update/delete individual decks
-- `/api/sheets/fetch` — fetch CSV data from a sheet tab
-- `/api/sheets/tabs` — discover tabs in a published Google Sheet
-- `/api/templates` — list/get templates
-- `/api/cards/preview`, `/api/cards/preview-batch` — render card previews
-- `/api/export` — single deck export, `/api/export/game` — full game export
-- `/api/games/:gameId/images` — list artwork images, covers, cardbacks, thumbnails
+- `/api/sheets/fetch`, `/api/sheets/tabs` — sheet CSV data and tab discovery
+- `/api/templates` — list/get/create/update/delete templates; `/api/templates/open-folder`
+- `/api/cards/preview`, `/api/cards/preview-batch` — render card previews (data URLs)
+- `/api/export`, `/api/export/game`, `/api/export/:jobId` — exports
+- `/api/games/:gameId/images` — artwork list, `covers`, `cardbacks`, `thumb/*`, `upload-cover`
+- `/api/app/info|status|heartbeat|bye|pick-folder|data-folder|open-renderer-folder` — desktop-shell functions (replaced Electron IPC)
 
 ### Client (`client/src/`)
-React 19 + Vite. Vite proxies `/api` and `/output` to `localhost:3001`.
+React 19 + Vite. Vite proxies `/api`, `/output` and `/games` to `localhost:3001`.
 
 **Layout:** Sidebar + main content area. React Router handles navigation:
 - `/` — GamesInventory (tile grid of games)
@@ -76,7 +82,7 @@ React 19 + Vite. Vite proxies `/api` and `/output` to `localhost:3001`.
 - `/games/:id/decks/:deckId` — DeckView (card preview grid, refresh, export)
 - `/templates` — TemplateList (view template source)
 
-**State:** Zustand store (`stores/appStore.ts`) holds active game/deck IDs and a deck data cache (headers, rows, card images per deck). Server is the source of truth for games/decks (via React Query). API functions in `api/client.ts` mirror server routes.
+**State:** Zustand store (`stores/appStore.ts`) holds active game/deck IDs and a deck data cache (headers, rows, card images per deck). The server is the source of truth for games/decks (via React Query). API functions in `api/client.ts` mirror server routes. `components/AppStatus.tsx` sends the keep-alive heartbeat and shows the renderer download/error banner.
 
 **Key concepts:**
 - **Game** — a project tied to a Google Sheets document (one URL, multiple tabs)
@@ -85,12 +91,12 @@ React 19 + Vite. Vite proxies `/api` and `/output` to `localhost:3001`.
 ### Data Flow
 1. User creates a Game with a Google Sheets URL → server discovers tabs via pubhtml parsing
 2. User creates Decks: selects a tab, template, and maps fields
-3. DeckView fetches tab data as CSV, renders card previews via Puppeteer
-4. Export: renders all cards to PNG buffers, composes into format (individual PNGs, PDF with crop marks, or TTS sprite sheet). Card backs exported as separate files.
+3. DeckView fetches tab data as CSV, renders card previews in the headless browser
+4. Export: renders all cards to PNGs, composes into format (individual PNGs, PDF with crop marks, or TTS sprite sheet). Card backs exported as separate files.
 
 ## Per-Game Folder Layout
 
-Each game gets its own folder under `games/<slug>/`:
+Each game gets its own folder under `<data>/games/<slug>/`:
 
 ```
 games/
@@ -109,36 +115,11 @@ games/
 - **Icons** → `games/<slug>/artwork/icons/` — referenced as `{icon:name}` in template HTML (resolved to `icons/<name>.png`)
 - **Cover images** → `games/<slug>/` root — any image file at the game folder root can be set as cover
 
-The `games/` directory is served statically at `/games` (used internally by Puppeteer for rendering). The client accesses images only through the API (`/api/games/:gameId/images/...`).
-
-## Electron Desktop App
-
-The app can be packaged as a standalone Windows desktop app via Electron.
-
-**Architecture:** Electron main process (`electron/main.ts`) sets env vars, imports the compiled server directly (in-process), and opens a `BrowserWindow` pointing at `localhost:3001`. Express serves the built client as static files.
-
-**Key files:**
-- `electron/main.ts` — main process (data folder picker, splash, server startup)
-- `electron/preload.ts` — contextBridge for IPC
-- `scripts/download-chrome.js` — downloads Chrome for Testing for puppeteer-core
-- `scripts/download-fonts.js` — downloads Google Fonts for offline use
-- `scripts/copy-client-dist.js` — copies client build for Electron packaging
-
-**Env var overrides (set by Electron, fallback to `__dirname`-relative in dev):**
-- `CARDMAKER_DATA_ROOT` — root data folder (games, output)
-- `CARDMAKER_OUTPUT_DIR` — export output directory
-- `CARDMAKER_TEMPLATES_DIR` — templates directory
-- `CARDMAKER_CLIENT_DIST` — built client directory (enables static serving + SPA fallback)
-- `PUPPETEER_EXECUTABLE_PATH` — Chrome binary path for puppeteer-core
-- `PORT` — server port override (for port conflict avoidance)
-
-**Dev Electron mode:** `npm run build:electron && npx electron .`
-
-**Puppeteer:** Uses `puppeteer-core` (not `puppeteer`). In dev, run `node scripts/download-chrome.js` once to get a Chrome binary, then set `PUPPETEER_EXECUTABLE_PATH`. In production Electron, Chrome is bundled in `extraResources/chrome/`.
+The `games/` directory is served statically at `/games` (used by the headless renderer). The client accesses images only through the API (`/api/games/:gameId/images/...`).
 
 ## Conventions
 
-- Export output goes to `output/` at project root, served at `/output`
-- `games/` and `output/` are gitignored
-- Server routes use `next(err)` pattern for error handling with centralized `errorHandler` middleware
-- `PROJECT_ROOT` is resolved relative to `__dirname` in server files, overridable via `CARDMAKER_DATA_ROOT` env var
+- Handlers report failures with `serverErr(w, err)` → `500 {"error": message}`, matching the old Express error middleware
+- Keep the HTTP/JSON contract in `internal/api` in sync with `client/src/api/client.ts` and `shared/src/types.ts`
+- `devdata/`, `app/web/dist/*` and `app/dist/` are gitignored
+- Release archives are unsigned: macOS needs right-click → Open the first time; Windows SmartScreen needs "More info → Run anyway"

@@ -1,5 +1,10 @@
 node_modules/
 dist/
+# app/web/dist holds the client build the Go binary embeds; keep its placeholder
+# so go:embed compiles in a fresh clone
+!app/web/dist/
+app/web/dist/*
+!app/web/dist/.gitkeep
 .env
 *.log
 .DS_Store
@@ -8,20 +13,14 @@ nul
 
 # Build outputs
 shared/dist/
-server/dist/
 client/dist/
 
 # Legacy data files (migrated to external data folder)
 .cardmaker-data.json.bak
 .cardmaker-defaults.json.bak
 
-# Chrome for Testing (downloaded by scripts/download-chrome.js)
-chrome/
-
-# Electron
-electron/dist/
-client-dist/
-dist-electron/
+# Local dev data folder (go run . --data ../devdata)
+devdata/
 
 # TypeScript build info
 *.tsbuildinfo

@@ -1,43 +1,21 @@
 ---
 name: restart-server
-description: Restart the Express server after code changes. Use this automatically after modifying any server source files.
+description: Restart the Go server after code changes. Use this automatically after modifying any Go source under app/.
 allowed-tools: Bash
 ---
 
-Restart the CardMaker Express server. This is needed after any change to server source files.
+Restart the Cardstock Go server. This is needed after any change to Go code in `app/`.
 
 Template HTML/CSS changes do NOT require a restart — they are read from disk on every render.
-Client changes do NOT require a restart — Vite HMR handles them automatically in dev mode.
+Client changes do NOT require a restart — Vite HMR handles them in dev mode.
 
 ## Steps
 
-1. Find and kill ALL processes on ports 3001, 5173, and 5174 (Express, Vite, Electron):
+1. Kill the process listening on port 3001:
+   - macOS/Linux: `lsof -ti tcp:3001 | xargs kill`
+   - Windows (Git Bash): `netstat -ano | findstr "LISTENING" | findstr ":3001"` then `taskkill //PID <pid> //F`
+2. Start it again as a background process:
    ```bash
-   netstat -ano | findstr "LISTENING" | findstr ":3001 :5173 :5174"
-   taskkill //PID <pid> //F
+   cd app && go run . --data ../devdata --port 3001 --ui=none --no-exit
    ```
-   Use `//PID` not `/PID` (Git Bash on Windows).
-
-2. Rebuild the server:
-   ```bash
-   cd /c/Users/mikes/Documents/CardMaker && npm run build:electron
-   ```
-
-3. Start Vite dev server as a background process:
-   ```bash
-   cd /c/Users/mikes/Documents/CardMaker/client && npx vite
-   ```
-
-4. Wait for Vite to be listening on port 5173.
-
-5. Launch Electron as a background process (starts Express in-process):
-   ```bash
-   cd /c/Users/mikes/Documents/CardMaker && npx electron .
-   ```
-
-6. Confirm Express is listening on port 3001 and the Electron window opens.
-
-## Important
-- Do NOT start a standalone Express server — Electron runs it in-process.
-- Electron window loads from Vite (localhost:5173) in dev mode for HMR.
-- Vite proxies `/api`, `/output`, `/games` to Express on port 3001.
+3. Confirm it prints "server running on http://127.0.0.1:3001". If Vite isn't running, start it with `cd client && npx vite`.

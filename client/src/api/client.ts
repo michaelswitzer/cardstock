@@ -245,3 +245,56 @@ export async function updateDeck(
 export async function deleteDeck(id: string): Promise<void> {
   await api.delete(`/decks/${id}`);
 }
+
+// --- App shell (data folder, renderer status, lifecycle) ---
+
+export interface RendererStatus {
+  state: 'idle' | 'starting' | 'downloading' | 'ready' | 'error';
+  progress?: number;
+  /** Downloading without progress info (fetching Chromium through Nix on NixOS). */
+  indeterminate?: boolean;
+  browser?: string;
+  error?: string;
+  /** Folder a download is going into. */
+  target?: string;
+  /** Set when this run downloaded the renderer, so the UI can confirm where it went. */
+  downloaded?: { path: string; bytes?: number; nix?: boolean };
+}
+
+export async function getAppInfo(): Promise<{ dataFolder: string; defaultDataFolder: string }> {
+  const { data } = await api.get('/app/info');
+  return data;
+}
+
+export async function getAppStatus(): Promise<{ renderer: RendererStatus }> {
+  const { data } = await api.get('/app/status');
+  return data;
+}
+
+export async function openRendererFolder(): Promise<void> {
+  await api.post('/app/open-renderer-folder');
+}
+
+/** Opens a native folder picker on the machine running Cardstock. Resolves to '' if cancelled. */
+export async function pickFolder(): Promise<string> {
+  const { data } = await api.post('/app/pick-folder');
+  return data.path;
+}
+
+export async function setDataFolder(path: string): Promise<{ dataFolder: string }> {
+  const { data } = await api.post('/app/data-folder', { path });
+  return data;
+}
+
+/** Keeps the app alive while a window is open; it shuts down shortly after the last one closes. */
+export function startHeartbeat(): () => void {
+  const beat = () => api.post('/app/heartbeat').catch(() => {});
+  const bye = () => navigator.sendBeacon('/api/app/bye');
+  beat();
+  const id = window.setInterval(beat, 5000);
+  window.addEventListener('pagehide', bye);
+  return () => {
+    window.clearInterval(id);
+    window.removeEventListener('pagehide', bye);
+  };
+}

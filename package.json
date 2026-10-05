@@ -1,84 +1,16 @@
 {
-  "name": "cardmaker",
-  "version": "0.1.0",
+  "name": "cardstock",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "main": "electron/dist/main.js",
   "workspaces": [
     "shared",
-    "server",
     "client"
   ],
   "scripts": {
-    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
-    "build:electron": "npm run build && cd electron && npx tsc && npx tsc -p tsconfig.preload.json && cd .. && node scripts/copy-client-dist.js",
-    "dist": "node scripts/dist.js",
-    "dist:win": "npm run build:electron && node scripts/download-chrome.js && node scripts/setup-codesign-cache.js && npx electron-builder --win --publish never",
-    "dist:mac": "npm run build:electron && node scripts/download-chrome.js && npx electron-builder --mac --publish never"
-  },
-  "devDependencies": {
-    "@puppeteer/browsers": "^2.12.1",
-    "concurrently": "^9.2.1",
-    "electron": "^40.4.1",
-    "electron-builder": "^26.7.0"
-  },
-  "dependencies": {
-    "@cardmaker/server": "*",
-    "@cardmaker/shared": "*",
-    "electron-store": "^11.0.2"
-  },
-  "build": {
-    "appId": "com.cardstock.app",
-    "productName": "Cardstock",
-    "directories": {
-      "output": "dist-electron"
-    },
-    "asar": false,
-    "files": [
-      "electron/dist/**/*",
-      "electron/icon.png",
-      "electron/icon-mac.png",
-      "electron/welcome.html",
-      "server/dist/**/*",
-      "server/package.json",
-      "shared/dist/**/*",
-      "shared/package.json",
-      "client-dist/**/*",
-      "package.json",
-      "node_modules/**/*"
-    ],
-    "asarUnpack": [
-      "**/node_modules/sharp/**",
-      "**/node_modules/@img/**"
-    ],
-    "extraResources": [
-      {
-        "from": "server/templates",
-        "to": "templates"
-      },
-      {
-        "from": "chrome",
-        "to": "chrome"
-      }
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "electron/icon.ico"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "electron/icon-mac.png"
-    },
-    "dmg": {
-      "contents": [
-        { "x": 130, "y": 220 },
-        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
+    "build": "npm run build -w shared && npm run build -w client && node scripts/copy-client-dist.js",
+    "app": "npm run build && node scripts/go.js run ./tools/release -host",
+    "release": "npm run build && node scripts/go.js run ./tools/release",
+    "test": "node scripts/go.js test ./..."
   }
 }

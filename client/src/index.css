@@ -60,7 +60,6 @@
   /* Sidebar */
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 56px;
-  --titlebar-height: 36px;
 }
 
 * {
@@ -1127,74 +1126,60 @@ button.danger:hover {
   background: var(--border);
 }
 
-/* Frameless window controls (Electron only) */
+/* Renderer status banner (first-run browser download, errors) */
 
-.titlebar-drag-region {
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width);
-  right: 0;
-  height: var(--titlebar-height);
-  background: var(--bg);
-  -webkit-app-region: drag;
-  z-index: 98;
-  transition: left 0.25s ease;
-}
-
-.sidebar.collapsed ~ .main-content .titlebar-drag-region {
-  left: var(--sidebar-collapsed-width);
-}
-
-.window-controls {
-  position: fixed;
-  top: 0;
-  right: 0;
-  display: flex;
-  z-index: 100;
-  background: var(--bg);
-  -webkit-app-region: no-drag;
-}
-
-.window-control-btn {
-  width: 46px;
-  height: var(--titlebar-height);
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.1s ease, color 0.1s ease;
-}
-
-.window-control-btn:hover {
-  background: var(--surface-light);
+.app-banner {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  font-size: var(--text-sm);
   color: var(--text);
 }
 
-.window-control-close:hover {
-  background: var(--accent-rose);
-  color: white;
+.app-banner.error {
+  border-color: var(--accent-rose);
 }
 
-/* Electron-mode layout adjustments */
-
-body.electron .sidebar {
-  z-index: 99;
+.app-banner.success {
+  border-color: var(--success);
 }
 
-body.electron .sidebar > div:first-child {
-  -webkit-app-region: drag;
+.app-banner-path {
+  margin-top: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  word-break: break-all;
 }
 
-body.electron .sidebar a,
-body.electron .sidebar button {
-  -webkit-app-region: no-drag;
+.app-banner-actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
 }
 
-body.electron .main-content {
-  padding-top: calc(var(--titlebar-height) + var(--sp-3));
+.app-banner-progress {
+  margin-top: var(--sp-2);
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.app-banner-progress > div {
+  height: 100%;
+  background: var(--accent-teal);
+  transition: width 0.3s ease;
+}
+
+.app-banner-progress.indeterminate > div {
+  width: 30%;
+  animation: app-banner-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes app-banner-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(340%); }
 }

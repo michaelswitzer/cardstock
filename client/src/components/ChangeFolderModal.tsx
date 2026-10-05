@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { pickFolder, setDataFolder } from '../api/client';
 
 interface ChangeFolderModalProps {
   open: boolean;
@@ -9,6 +10,8 @@ interface ChangeFolderModalProps {
 export default function ChangeFolderModal({ open, onClose, currentFolder }: ChangeFolderModalProps) {
   const [newFolder, setNewFolder] = useState<string | null>(null);
   const [restarting, setRestarting] = useState(false);
+  const [manualEntry, setManualEntry] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!open) return null;
 
@@ -16,23 +19,35 @@ export default function ChangeFolderModal({ open, onClose, currentFolder }: Chan
   const hasChanged = newFolder !== null && newFolder !== currentFolder;
 
   const handleBrowse = async () => {
-    if (!window.cardstock) return;
-    const chosen = await window.cardstock.pickDataFolder();
-    if (chosen) {
-      setNewFolder(chosen);
+    setError(null);
+    try {
+      const chosen = await pickFolder();
+      if (chosen) setNewFolder(chosen);
+    } catch {
+      // No native picker on this system (e.g. Linux without zenity/kdialog): type the path instead.
+      setManualEntry(true);
     }
   };
 
   const handleConfirm = async () => {
-    if (!window.cardstock || !newFolder) return;
+    if (!newFolder) return;
     setRestarting(true);
-    await window.cardstock.useDataFolder(newFolder);
-    await window.cardstock.restartApp();
+    setError(null);
+    try {
+      await setDataFolder(newFolder);
+      window.location.assign('/');
+    } catch (err) {
+      const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error;
+      setError(msg ?? 'Could not use that folder.');
+      setRestarting(false);
+    }
   };
 
   const handleClose = () => {
     setNewFolder(null);
     setRestarting(false);
+    setManualEntry(false);
+    setError(null);
     onClose();
   };
 
@@ -68,9 +83,23 @@ export default function ChangeFolderModal({ open, onClose, currentFolder }: Chan
             </div>
           </div>
 
-          <button className="secondary" onClick={handleBrowse} style={{ alignSelf: 'flex-start' }}>
-            Browse...
-          </button>
+          {manualEntry ? (
+            <input
+              type="text"
+              placeholder="/path/to/folder"
+              value={newFolder ?? ''}
+              onChange={(e) => setNewFolder(e.target.value || null)}
+              autoFocus
+            />
+          ) : (
+            <button className="secondary" onClick={handleBrowse} style={{ alignSelf: 'flex-start' }}>
+              Browse...
+            </button>
+          )}
+
+          {error && (
+            <div style={{ fontSize: 12, color: 'var(--error)' }}>{error}</div>
+          )}
 
           {hasChanged && (
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -4 }}>

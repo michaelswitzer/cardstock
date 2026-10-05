@@ -11,20 +11,29 @@ A card-rendering tool for game designers. Connect a Google Sheets spreadsheet, p
 - **Export formats** -- Individual PNGs (300 DPI), print-ready PDF with crop marks, or Tabletop Simulator sprite sheets
 - **Saved defaults** -- Remembers your sheet URL, template, and field mappings between sessions
 
-## Quick Start
+## Download & Run
 
-```bash
-npm install
-```
+Grab the archive for your system from the [Releases](https://github.com/michaelswitzer/cardstock/releases) page. There is no installer: unzip it and run the app.
 
-Start the server and client in separate terminals:
+| System | Archive | Run |
+|---|---|---|
+| Windows 10/11 | `Cardstock-<version>-windows-x64.zip` | `Cardstock/Cardstock.exe` |
+| macOS (Apple Silicon / Intel) | `Cardstock-<version>-macos-arm64.zip` / `-macos-x64.zip` | `Cardstock/Cardstock.app` |
+| Linux | `Cardstock-<version>-linux-x64.tar.gz` / `-linux-arm64.tar.gz` | `Cardstock/cardstock` |
 
-```bash
-cd server && npx tsx src/index.ts    # API server on port 3001
-cd client && npx vite                # Dev server on port 5173
-```
+Cardstock opens in its own window. It shuts down by itself a few seconds after you close that window.
 
-Open http://localhost:5173.
+**Your data** (games, templates, exports) is stored next to the app, in the folder you unzipped it to. If that folder isn't writable, or the Mac app is in `/Applications`, data goes to `Documents/Cardstock` instead. **Change Data Folder** on the Games page moves it anywhere you like.
+
+**Browser requirement:** cards are rendered with a Chromium-based browser engine: Microsoft Edge (built into Windows), Google Chrome, Chromium, Brave or Vivaldi. If none is installed, Cardstock downloads a headless Chrome on first launch (about 260 MB unpacked, one time) into a `renderer/` folder next to the app. A banner shows the progress, then confirms where it was saved. Delete that folder to remove it. The app window opens in your installed Chromium browser if there is one, or otherwise in your default browser. Firefox works fine for the UI.
+
+**First launch on macOS:** the app isn't signed with an Apple Developer ID, so macOS blocks it the first time. Right-click `Cardstock.app` → **Open** → **Open**, or run `xattr -dr com.apple.quarantine Cardstock.app`.
+
+**First launch on Windows:** SmartScreen may warn about an unrecognized app. Click **More info** → **Run anyway**.
+
+**NixOS:** Google's prebuilt Chrome can't run there, so if no Chromium is installed Cardstock fetches `chromium` from nixpkgs instead (via `nix build`) and links it into `renderer/chromium`. Delete that link and run `nix-collect-garbage` to remove it.
+
+Command-line options: `--data <folder>`, `--chrome <browser path>`, `--ui auto|app|browser|none`, `--port <n>`, `--version`.
 
 ## Connecting a Google Sheet
 
@@ -93,23 +102,22 @@ This is useful for the typical workflow: edit your spreadsheet, open Cardstock, 
 ## Project Structure
 
 ```
-shared/     Types and constants shared between server and client
-server/     Express API, Puppeteer rendering, export services
+app/        Go program: HTTP API, headless-browser rendering, exports, launcher (embeds the client)
+  templates/  Starter templates copied into new data folders
+  tools/release/  Cross-platform release packaging
 client/     React + Vite single-page UI
-artwork/    Card artwork images (gitignored, served at /artwork)
-  cardback/ Card back images (listed in card back dropdown)
-output/     Exported files (gitignored, served at /output)
+shared/     TypeScript types and constants used by the client
 ```
 
 ### Templates
 
-Templates live in `server/templates/<id>/` with three files:
+Templates live in `<data folder>/templates/<id>/` with three files:
 
 - `manifest.json` -- Declares fields, image slots, and card dimensions
 - `template.html` -- Card layout with `{{fieldName}}` and `{{image:slotName}}` placeholders
 - `template.css` -- Card styling
 
-An `example` template is included in the repo as a starting point. To create your own, copy the `server/templates/example/` folder to a new name (e.g. `server/templates/my-game/`) and edit the three files. Your custom templates are gitignored by default so they won't be committed to the repo.
+An `example` template is created in every new data folder as a starting point. To make your own, copy the `example` folder to a new name (e.g. `templates/my-game/`) and edit the three files, or create one from the **Card Templates** page.
 
 #### Template Assets
 
@@ -120,18 +128,17 @@ There are two ways to reference template assets:
 - **In CSS:** Use `url(/templates/<id>/border.png)` in your `template.css`
 - **In HTML:** Use the `{{template:border.png}}` placeholder in your `template.html`
 
-Both methods work in Puppeteer rendering and in the client preview.
-
 ### Rendering
 
-100 CSS px = 1 inch. Cards are 250x350 CSS px. Puppeteer renders at `deviceScaleFactor: 3`, producing 750x1050 px output at 300 DPI.
+100 CSS px = 1 inch. Cards are 250x350 CSS px, rendered by headless Chromium at device scale factor 3, producing 750x1050 px output at 300 DPI.
 
 ## Building from Source
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or later)
-- npm (comes with Node.js)
+- [Node.js](https://nodejs.org/) 20+ (builds the client)
+- [Go](https://go.dev/dl/) 1.26+ (builds the app)
+- A Chromium-based browser for rendering
 
 ### Development
 
@@ -142,50 +149,26 @@ npm install
 Start the server and client in separate terminals:
 
 ```bash
-cd server && npx tsx src/index.ts    # API server on port 3001
-cd client && npx vite                # Dev server on port 5173
+cd app && go run . --data ../devdata --port 3001 --ui=none --no-exit   # API on port 3001
+cd client && npx vite                                                  # Dev server on port 5173
 ```
 
 Open http://localhost:5173.
 
-### Building the Desktop App
-
-To run the Electron app in development:
+### Building the App
 
 ```bash
-npm run build:electron
-npx electron .
+npm run app       # builds app/cardstock (or cardstock.exe) for this machine
+npm run release   # builds archives for Windows, macOS and Linux into app/dist/
+npm test          # Go unit tests
 ```
 
-This requires a local Chrome for Testing binary. Download it once with:
-
-```bash
-node scripts/download-chrome.js
-```
-
-### Packaging a Windows Installer
-
-To produce a standalone Windows installer (`.exe`):
-
-```bash
-npm run dist
-```
-
-This will:
-1. Build all workspaces (shared, server, client)
-2. Compile the Electron main process and preload script
-3. Download Chrome for Testing (if not already cached)
-4. Package everything into an NSIS installer
-
-The installer is output to `dist-electron/Cardstock Setup <version>.exe`. It includes everything needed to run — no separate Node.js or Chrome install is required.
-
-> **Note:** The app is not code-signed, so Windows SmartScreen may show a warning on first launch. Click "More info" then "Run anyway" to proceed.
+Go cross-compiles, so one machine can build every platform's archive. Publishing a GitHub release runs the same build in CI and attaches the archives.
 
 ## Tech Stack
 
 - **Client:** React 19, Vite, Zustand, TanStack React Query
-- **Server:** Express, Puppeteer, sharp, pdf-lib, PapaParse
-- **Desktop:** Electron, electron-builder
+- **App:** Go (net/http, chromedp, gopdf, golang.org/x/image)
 - **Shared:** TypeScript
 
 ## License

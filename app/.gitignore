@@ -1,0 +1,5 @@
+web/dist/*
+!web/dist/.gitkeep
+/cardstock
+/cardstock.exe
+/dist/

@@ -3,22 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGames } from '../hooks/useGames';
 import CreateGameModal from '../components/CreateGameModal';
 import ChangeFolderModal from '../components/ChangeFolderModal';
-
-declare global {
-  interface Window {
-    cardstock?: {
-      getDataFolder: () => Promise<string>;
-      getDefaultDataFolder: () => Promise<string>;
-      pickDataFolder: () => Promise<string | null>;
-      useDataFolder: (folderPath: string) => Promise<string>;
-      welcomeDone: (folderPath: string) => Promise<void>;
-      restartApp: () => Promise<void>;
-      minimizeWindow: () => void;
-      maximizeWindow: () => void;
-      closeWindow: () => void;
-    };
-  }
-}
+import { getAppInfo } from '../api/client';
 
 function hashTitle(title: string): number {
   let hash = 0;
@@ -41,12 +26,9 @@ export default function GamesInventory() {
   const [showCreate, setShowCreate] = useState(false);
   const [showChangeFolder, setShowChangeFolder] = useState(false);
   const [dataFolder, setDataFolder] = useState<string | null>(null);
-  const isElectron = !!window.cardstock;
 
   useEffect(() => {
-    if (window.cardstock) {
-      window.cardstock.getDataFolder().then(setDataFolder);
-    }
+    getAppInfo().then((info) => setDataFolder(info.dataFolder)).catch(() => {});
   }, []);
 
   return (
@@ -54,11 +36,9 @@ export default function GamesInventory() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-5)' }}>
         <h1 style={{ fontSize: 26 }}>Games</h1>
         <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
-          {isElectron && (
-            <button className="secondary" onClick={() => setShowChangeFolder(true)} title={dataFolder ?? undefined}>
-              Change Data Folder
-            </button>
-          )}
+          <button className="secondary" onClick={() => setShowChangeFolder(true)} title={dataFolder ?? undefined}>
+            Change Data Folder
+          </button>
           <button className="primary" onClick={() => setShowCreate(true)}>
             New Game
           </button>

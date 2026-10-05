@@ -1,52 +1,36 @@
 ---
 name: dev
-description: Build and launch CardMaker as an Electron desktop app
+description: Run Cardstock for development (Go server + Vite dev server with HMR)
 disable-model-invocation: true
 argument-hint: "[start|stop|restart]"
 ---
 
-Manage the CardMaker Electron app. The argument determines the action:
-- `start` (default if no argument): stop stale processes, build, and launch Electron
-- `stop`: stop all CardMaker processes
+Manage the Cardstock dev setup. The argument determines the action:
+- `start` (default): stop stale processes, then start the Go server and Vite
+- `stop`: stop both
 - `restart`: stop then start
 
 ## Stop Procedure
 
-1. Find processes on ports 3001, 5173, and 5174:
-   ```bash
-   netstat -ano | findstr "LISTENING" | findstr ":3001 :5173 :5174"
-   ```
-2. Kill each found PID:
-   ```bash
-   taskkill //PID <pid> //F
-   ```
-   Use `//PID` not `/PID` (Git Bash on Windows).
+Find and kill processes listening on ports 3001 and 5173/5174:
+- macOS/Linux: `lsof -ti tcp:3001 -ti tcp:5173 -ti tcp:5174 | xargs kill`
+- Windows (Git Bash): `netstat -ano | findstr "LISTENING" | findstr ":3001 :5173 :5174"` then `taskkill //PID <pid> //F`
 
 ## Start Procedure
 
-1. First run the stop procedure to clear stale processes.
-
-2. Build everything:
+1. Run the stop procedure.
+2. Start the Go server as a background process, with a dev data folder and no UI window:
    ```bash
-   cd /c/Users/mikes/Documents/CardMaker && npm run build:electron
+   cd app && go run . --data ../devdata --port 3001 --ui=none --no-exit
    ```
-
-3. Start the Vite dev server as a background process (provides HMR for client changes):
+   Wait for "server running on http://127.0.0.1:3001".
+3. Start Vite as a background process:
    ```bash
-   cd /c/Users/mikes/Documents/CardMaker/client && npx vite
+   cd client && npx vite
    ```
+4. Open http://localhost:5173 (Vite proxies `/api`, `/output`, `/games` to port 3001).
 
-4. Wait for Vite to be listening on port 5173.
-
-5. Launch Electron in dev mode as a background process:
-   ```bash
-   cd /c/Users/mikes/Documents/CardMaker && npx electron .
-   ```
-
-Report the status when done.
-
-## Architecture Notes
-- Electron runs the Express server in-process on port 3001 (handles data folder, env vars).
-- Vite dev server on port 5173 provides HMR — client changes hot-reload instantly.
-- In dev mode, Electron window loads from Vite (localhost:5173), which proxies `/api`, `/output`, and `/games` to Express on port 3001.
-- Only server code changes require a full restart. Client changes are reflected immediately via HMR.
+## Notes
+- Client changes hot-reload via Vite. Go changes need a server restart (see the restart-server skill).
+- Template HTML/CSS is read from disk on every render; no restart needed.
+- Rendering needs a Chromium-based browser (Chrome/Edge/Chromium/Brave). Pass `--chrome /path` to pick one.
